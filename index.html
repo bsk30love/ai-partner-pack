@@ -211,7 +211,7 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
 .autonote { margin: .8em 0 0; padding: .7em 1em; border-radius: 12px; background: var(--accent-soft); font-size: .95em; }
 .hubflow { color: var(--ink-soft); font-size: .9em; margin: 0; }
 
-/* pack: scam practice / prompt notebook / glossary */
+/* pack: scam practice */
 .msgmock { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 1em 1.2em; margin: 0 0 1.2em; max-width: 34em; }
 .msgmock .mk { display: inline-block; font-size: .72em; font-weight: 700; padding: .05em .8em; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
 .msgmock .mf { font-size: .82em; color: var(--ink-soft); margin: .3em 0 .4em; }
@@ -223,25 +223,8 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
 .verdict h3 { margin: 0 0 .3em; font-family: var(--f-display); font-size: 1.1em; }
 .verdict ul { margin: .3em 0 .6em; padding-left: 1.3em; }
 .verdict p { margin: .3em 0; }
-.jrow { display: flex; gap: .6em; align-items: flex-start; }
-.jrow .tag { flex: none; margin-top: .25em; }
 .tips3 { margin: 0; padding-left: 1.3em; }
 .tips3 li { margin-top: .3em; }
-.gtitle { margin: 0; font-family: var(--f-display); font-size: 1.1em; }
-.gcard .rd { font-size: .78em; color: var(--ink-soft); margin: 0; }
-.gcard .kid { margin: .5em 0 0; padding: .4em .8em; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 10px 10px 0; font-size: .92em; }
-.pcat { font-family: var(--f-display); font-size: 1.05em; margin: 1.2em 0 .5em; }
-.qbox { margin: .3em 0; padding: .5em .8em; border-radius: 10px; background: var(--accent-soft); font-size: .95em; }
-.rulecard { border: 3px solid var(--accent); border-radius: 18px; padding: 1.2em 1.4em; background: var(--card); }
-.rulecard h1 { margin: 0 0 .1em; }
-.rulecard .rc { margin-top: 1em; }
-.rulecard .rc h3 { margin: 0 0 .3em; font-family: var(--f-display); font-size: 1.05em; color: var(--accent); }
-.rulecard .rc ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .3em; }
-.rulecard .rc li { font-size: 1.1em; font-weight: 700; display: flex; gap: .5em; }
-.cardcut { border: 2px dashed var(--ink-soft); border-radius: 12px; padding: 1em 1.2em; background: var(--card); }
-.cardcut h1 { margin: 0 0 .2em; }
-.cutlabel { font-size: .75em; color: var(--ink-soft); margin: .3em 0 0; text-align: right; }
-.twocol { display: grid; grid-template-columns: 1fr 1fr; gap: .8em; }
 [hidden]{display:none!important}
 </style>
 
@@ -477,44 +460,9 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
       act: '大丈夫そうです。ただし「登録した覚えがない」防災メールは要注意。自分で登録したものかどうかが、見分けの分かれ目です。' }
   ];
 
-  /* ---------- データ: AIに聞いてみよう ---------- */
-  var PCATS = [
-    { name: '役所の手続き', items: [
-      { q: '中学生の子どもがいる家庭が、同じ市内で引っ越すとき、役所で必要な手続きを順番に教えてください。', chk: '市区町村の公式サイト、または窓口' },
-      { q: '児童手当の手続きで、忘れやすい点を3つ、やさしい言葉で教えてください。', chk: '市区町村の公式サイト、または窓口' } ] },
-    { name: '毎日のごはん', items: [
-      { q: '冷蔵庫に鶏肉・キャベツ・卵があります。15分でできて、中学生が喜ぶ夕ごはんを3つ提案してください。', chk: '加熱の目安は、レシピサイトなど別の情報でも確認' },
-      { q: '家族4人で1週間分の夕ごはんの献立と、買い物リストを作ってください。1日の予算は1,500円です。', chk: '実際の値段は、お店のチラシやアプリで確認' } ] },
-    { name: '中学の勉強', items: [
-      { q: '中学1年の英語で、be動詞と一般動詞のちがいを、小学生にもわかる例で説明してください。', chk: '教科書、または学校の先生' },
-      { q: '中学の数学「正負の数」でつまずきやすい点を3つ教えてください。親はどんな声かけをすればいいですか。', chk: '教科書、または学校の先生' } ] },
-    { name: '連絡と防災', items: [
-      { q: '台風が近づく前の日に、家族で確認しておくことを、チェックリストにしてください。', chk: '自治体のハザードマップ・公式の防災情報' },
-      { q: 'スマホが使えないときの、家族の連絡方法のアイデアを5つ出してください。', chk: '家族で話し合って、実際に決めてみる' } ] },
-    { name: 'お金と買い物', items: [
-      { q: 'スマホの料金プランを見直すとき、確認するポイントを教えてください。(契約内容や名前は入れません)', chk: '契約している会社の公式ページ' },
-      { q: '怪しい請求メールが来たとき、まず何をすればいいですか。', chk: '消費者ホットライン(188)や、公式の相談窓口' } ] }
-  ];
-  var PITEMS = [];
-  PCATS.forEach(function (c) { c.items.forEach(function (it) { PITEMS.push({ cat: c.name, q: it.q, chk: it.chk }); }); });
-
-  /* ---------- データ: 保護者向けAIミニ辞典 ---------- */
-  var TERMS = [
-    { n: '生成AI', r: 'せいせいエーアイ', d: '文章・絵・音声などを、質問や指示に合わせて新しく作ってくれるAI。', k: '「質問すると、文章や絵を作ってくれる道具だよ。ただし、間違えることもあるんだ」' },
-    { n: 'プロンプト', r: '', d: 'AIに出す、質問や指示のこと。書き方しだいで、答えが変わる。', k: '「AIへのお願いの文章のことだよ。どんな場面か、何を知りたいかを書くと伝わりやすいね」' },
-    { n: 'ハルシネーション', r: '', d: 'AIが、もっともらしい言い方で、事実でないことを答えてしまうこと。', k: '「AIは自信ありげに、まちがえることがあるんだ。だから、もう1か所で確かめよう」' },
-    { n: 'アルゴリズム', r: '', d: 'コンピューターが、何を先に見せるかなどを決めるときの手順やしくみ。', k: '「見た動画に近いものが次々に出てくるのは、そういうしくみがあるからだよ」' },
-    { n: '学習データ', r: 'がくしゅうデータ', d: 'AIが、答え方を身につけるために読み込んだ、大量の文章や画像などの資料。', k: '「AIが勉強に使った、たくさんの資料のことだよ。古い情報や偏りが混ざることもあるんだ」' },
-    { n: 'フィッシング', r: '', d: '本物そっくりのメールやサイトで、パスワードやカード番号をだまし取ること。', k: '「本物のふりをして、大事な情報を聞き出そうとするワナだよ。リンクは開かずに、家族に見せよう」' },
-    { n: 'ディープフェイク', r: '', d: 'AIで作った、本物そっくりの偽の顔・声・動画。', k: '「本当にはいない人や、言っていないことを、本物みたいに作れてしまうんだ。動画も、うのみにしないでね」' },
-    { n: '個人情報', r: 'こじんじょうほう', d: '名前・住所・電話番号・顔写真など、その人だと分かる情報。', k: '「自分や家族の名前・住所・写真は、AIやSNSに入れる前に、一度とまって考えよう」' },
-    { n: '二段階認証', r: 'にだんかいにんしょう', d: 'パスワードに加えて、もう1つの確認(コードなど)を求めて、アカウントを守るしくみ。', k: '「玄関のカギが2つあるようなものだよ。誰かにパスワードを知られても、守れるんだ」' },
-    { n: '著作権', r: 'ちょさくけん', d: '文章・絵・音楽などを作った人が持つ、大切にされるべき権利。', k: '「人が作ったものは、勝手に使わないのが基本だよ。AIが作ったものでも、似すぎていると問題になることがあるんだ」' }
-  ];
-
   var S = { screen: 'hub', staff: false, ci: 0, ca: [], check: null, order: [0, 1, 2, 3], fromCheck: false,
             step: 0, q: [-1, -1, -1, -1], r: [[], [], [], []], stage: -1, auto: false, pick: [],
-            si: 0, sa: [], pk: [], tm: [], ec: [] };
+            si: 0, sa: [] };
 
   /* ---------- 共通の部品 ---------- */
   function head() {
@@ -556,16 +504,12 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
         '<button class="tool" data-act="go" data-to="t1i"><span class="tn">ツール1</span><span class="tt">AI学習・対話シート</span><span class="td">親子で話して、わが家のAIルールをつくります。</span><span class="tm">約15分 ・ 印刷できます</span></button>' +
         '<button class="tool" data-act="go" data-to="t2p"><span class="tn">ツール2</span><span class="tt">伴走ステップ・成長マップ</span><span class="td">いまの位置を確かめて、次の小さな一歩を決めます。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
         '<button class="tool" data-act="go" data-to="t3i"><span class="tn">ツール3</span><span class="tt">あやしい連絡 見分け練習</span><span class="td">SMS・メール・広告・LINEを見て、あやしいかどうかを一緒に考えます。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
-        '<button class="tool" data-act="go" data-to="t4i"><span class="tn">ツール4</span><span class="tt">AIに聞いてみよう</span><span class="td">暮らしの場面ごとの聞き方の例で、AIに質問する練習をします。</span><span class="tm">約10分 ・ 印刷できます</span></button>' +
-        '<button class="tool" data-act="go" data-to="t5p"><span class="tn">ツール5</span><span class="tt">AI用語ミニ辞典</span><span class="td">学校やニュースで聞く言葉を、「お子様にはこう伝える」一言つきで。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
-        '<button class="tool" data-act="go" data-to="rcp"><span class="tn">ツール6</span><span class="tt">わが家のAIルールカード</span><span class="td">話し合って決めたルールを、冷蔵庫に貼れる1枚のカードにします。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
-        '<button class="tool" data-act="go" data-to="ecp"><span class="tn">ツール7</span><span class="tt">スマホが使えない日の連絡カード</span><span class="td">連絡先・集合場所・連絡の手順を、紙1枚にまとめます。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
       '</div>' +
       '<p class="hubflow">おすすめの順番は「安心チェック → 対話シート → 成長マップ」です。時間がないときは、どれかひとつだけでも大丈夫です。</p>' +
       '<p class="note">お名前や会員番号の入力はありません。答えはこの端末に保存されません。</p>' +
       staffBox('<p>最初に「診断ではなく、お話のきっかけです」と伝える。会員様の横に座り、画面を真ん中に置いて一緒に見る。</p>' +
         '<p>ご家族が変わるときは、下の「新しいご家族で始める」で、入力内容をすべて消してから始める。</p>') +
-      (S.check || S.stage >= 0 || S.q.some(function (x) { return x >= 0; }) || S.sa.length || S.pk.length || S.tm.length || S.ec.length ? '<div class="qnav no-print"><span></span><button class="ghost" data-act="reset">新しいご家族で始める(入力内容を消す)</button></div>' : '') +
+      (S.check || S.stage >= 0 || S.q.some(function (x) { return x >= 0; }) || S.sa.length ? '<div class="qnav no-print"><span></span><button class="ghost" data-act="reset">新しいご家族で始める(入力内容を消す)</button></div>' : '') +
       '</section>';
   }
 
@@ -863,164 +807,13 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
       '<div class="block"><h2>練習した6つの例</h2><div class="sheetgrid">' + rows + '</div></div>' +
       '<div class="block"><section class="sblock"><h3>わが家の合言葉</h3><p class="sd">「本当に家族?」を確かめるための、家族だけの言葉を決めておきましょう。</p><div class="lines"><i></i></div></section></div>' +
       '<div class="print-foot">この用紙は、ご家族のお話の材料として、お持ち帰りください。</div>' +
-      panel + actions('again3', [{ act: 'go', to: 't4i', label: 'AIに聞いてみようへ' }]) + '</section>';
-  }
-
-  /* ---------- ツール4: AIに聞いてみよう ---------- */
-  function t4i() {
-    return '<section class="start">' +
-      '<h1>AIへの聞き方を、練習してみましょう。</h1>' +
-      '<p class="lead">暮らしの場面ごとの聞き方の例を選んで、AIに実際に聞いてみます。答えは「もう1か所で確かめる」ところまでが練習です。</p>' +
-      '<ul class="facts"><li>約10分</li><li>5つの場面</li><li>3つまで選べます</li></ul>' +
-      '<div class="block"><h2>聞き方の3つのコツ</h2><ol class="tips3"><li>どんな場面かを書く(例: 「中学生の子がいる家庭で」)</li><li>知りたいことを、ひとつだけ書く</li><li>名前・住所・電話番号は、書かない</li></ol></div>' +
-      '<button class="btn" data-act="go" data-to="t4s" style="margin-top:1.2em">例を選ぶ</button>' +
-      staffBox('<p>AIが使える環境なら、選んだ質問をその場で一緒に入力し、答えを見て「これは本当かな?」と話す。</p><p>専門用語(プロンプトなど)は使わず、「AIへのお願いの書き方」と言う。</p>') +
-      '</section>';
-  }
-  function t4s() {
-    var body = '', n = 0;
-    PCATS.forEach(function (c) {
-      body += '<h3 class="pcat">' + c.name + '</h3><div class="opts">';
-      c.items.forEach(function () {
-        var it = PITEMS[n], on = S.pk.indexOf(n) >= 0, full = S.pk.length >= 3;
-        body += '<button class="opt multi' + (on ? ' sel' : '') + '" data-act="pk" data-i="' + n + '"' + (full && !on ? ' disabled' : '') + '><span class="dot"></span><span class="txt">' + it.q + '</span></button>';
-        n++;
-      });
-      body += '</div>';
-    });
-    return '<section><div class="qnum">3つまで選べます</div>' +
-      '<h2 class="q">聞いてみたいことを選びましょう</h2><p class="qsub">気になるものを選ぶと、AIに聞いた答えのメモと、確かめる欄がついた練習シートになります。</p>' +
-      body +
-      '<div class="qnav"><button class="ghost" data-act="go" data-to="t4i">もどる</button><button class="btn" data-act="t4go"' + (S.pk.length ? '' : ' disabled') + '>練習シートを見る</button></div>' +
-      staffBox('<p>ご家庭で実際に困っていそうな場面から選んでもらう。決めるのは会員様。</p>') +
-      '</section>';
-  }
-  function t4r() {
-    var blocks = S.pk.map(function (k, i) {
-      var it = PITEMS[k];
-      return '<section class="sblock"><h3>' + (i + 1) + '. ' + it.cat + '</h3>' +
-        '<p class="sq"><b>AIに聞いてみよう:</b></p><p class="qbox">' + it.q + '</p>' +
-        '<p class="sq"><b>AIの答えのメモ</b></p><div class="lines"><i></i><i></i></div>' +
-        '<ul class="srules"><li><span class="cb"></span><span>もう1か所で確かめた(' + it.chk + ')</span></li><li><span class="cb"></span><span>家族に話した</span></li></ul></section>';
-    }).join('');
-    var panel = staffPanel('スタッフの方へ(進め方のヒント)',
-      '<h4>進め方</h4>' + ol(['選んだ質問を、会員様と一緒にAIに入力してみる。', '答えを読み、「これは本当かな?」と会員様に聞く。', '「確かめる先」を一緒に開いて、答えとくらべる。', '個人情報(名前・住所・番号)を入れないことを、もう一度やさしく伝える。']) +
-      '<h4>避けたい言い方</h4>' + li(['「AIの答えなら正しい」と言う。', '専門用語を使う。', 'お金・健康のことをAIだけで決めるようすすめる。']));
-    return '<section class="res">' + head() +
-      '<h1>わが家の「AIに聞いてみよう」シート</h1><p class="date">' + today() + ' ・ AIに聞いてみよう</p>' +
-      '<div class="block"><h2>聞き方の3つのコツ</h2><ol class="tips3"><li>どんな場面かを書く</li><li>知りたいことを、ひとつだけ書く</li><li>名前・住所・電話番号は、書かない</li></ol></div>' +
-      '<div class="block"><div class="sheetgrid">' + blocks + '</div></div>' +
-      '<div class="block"><section class="sblock"><h3>自分で考えた質問</h3><p class="sd">聞いてみたいことを、自分の言葉で書いてみましょう。</p><div class="lines"><i></i><i></i></div></section></div>' +
-      '<div class="print-foot">AIの答えは、もう1か所で確かめてから使いましょう。</div>' +
-      panel + actions('again4', [{ act: 'go', to: 't5p', label: 'AI用語ミニ辞典へ' }]) + '</section>';
-  }
-
-  /* ---------- ツール5: AI用語ミニ辞典 ---------- */
-  function t5p() {
-    var cards = TERMS.map(function (t, n) {
-      var on = S.tm.indexOf(n) >= 0, full = S.tm.length >= 6;
-      return '<button class="opt multi gcard' + (on ? ' sel' : '') + '" data-act="tm" data-i="' + n + '"' + (full && !on ? ' disabled' : '') + '><span class="dot"></span><span class="txt"><span class="nm">' + t.n + '</span>' +
-        (t.r ? '<span class="rd">' + t.r + '</span>' : '') + '<span class="ds">' + t.d + '</span></span></button>';
-    }).join('');
-    return '<section><div class="qnum">6つまで選べます</div>' +
-      '<h2 class="q">気になる言葉を選びましょう</h2>' +
-      '<p class="qsub">選んだ言葉が、「お子様にはこう伝える」一言つきのカードになります。選ばずに進むと、全部のカードが出ます。</p>' +
-      '<div class="opts">' + cards + '</div>' +
-      '<div class="qnav"><button class="ghost" data-act="go" data-to="hub">ホームへ</button><button class="btn" data-act="t5go">カードを見る</button></div>' +
-      staffBox('<p>ニュースや学校の配布物で見かけた言葉から選んでもらう。「聞き慣れない言葉が多いのは自然なこと」と伝える。</p>') +
-      '</section>';
-  }
-  function t5r() {
-    var idx = S.tm.length ? S.tm : TERMS.map(function (_, i) { return i; });
-    var cards = idx.map(function (n) {
-      var t = TERMS[n];
-      return '<section class="sblock gcard"><h3 class="gtitle">' + t.n + '</h3>' + (t.r ? '<p class="rd">' + t.r + '</p>' : '') +
-        '<p class="sd" style="font-size:.95em;color:var(--ink)">' + t.d + '</p><p class="kid"><b>お子様には:</b> ' + t.k + '</p></section>';
-    }).join('');
-    var panel = staffPanel('スタッフの方へ(伝え方のヒント)',
-      '<h4>進め方</h4>' + ol(['言葉の意味を説明する前に、「どこで聞きましたか?」と聞く。', '「お子様にはこう伝える」の一言を、会員様の言葉で言い直してもらう。', '覚えてもらうことより、「聞かれても慌てない」ことをゴールにする。']) +
-      '<h4>避けたい言い方</h4>' + li(['専門用語を重ねて説明する。', '「知らないと危ない」と不安をあおる。']));
-    return '<section class="res">' + head() +
-      '<h1>AI用語ミニ辞典</h1><p class="date">' + today() + ' ・ AI用語ミニ辞典</p>' +
-      '<div class="block"><div class="sheetgrid">' + cards + '</div></div>' +
-      '<div class="print-foot">この用紙は、お子様との会話の材料として、お持ち帰りください。</div>' +
-      panel + actions('again5', [{ act: 'go', to: 't3i', label: '見分け練習へ' }]) + '</section>';
-  }
-
-  /* ---------- ツール6: わが家のAIルールカード ---------- */
-  function rcp() {
-    var body = FORCES.map(function (f, n) {
-      var full = S.r[n].length >= 2;
-      var opts = f.rules.map(function (t, k) {
-        var on = S.r[n].indexOf(k) >= 0;
-        return '<button class="opt multi' + (on ? ' sel' : '') + '" data-act="rc" data-f="' + n + '" data-i="' + k + '"' + (full && !on ? ' disabled' : '') + '><span class="dot"></span><span class="txt">' + t + '</span></button>';
-      }).join('');
-      return '<div class="sect"><h3>' + f.name + '</h3><p class="hint">' + f.desc + '(2つまで)</p><div class="opts">' + opts + '</div></div>';
-    }).join('');
-    var note = S.r.some(function (a) { return a.length; }) ? '<p class="autonote">対話シートで選んだルールが、そのまま入っています。変えてもかまいません。</p>' : '';
-    return '<section><div class="qnum">ルールを選ぶ</div>' +
-      '<h2 class="q">わが家のルールを、決めましょう</h2>' +
-      '<p class="qsub">やってみたいものを選んでください。選ばないテーマは、カードの空欄に家族の言葉で書けます。</p>' + note + body +
-      '<div class="qnav"><button class="ghost" data-act="go" data-to="hub">ホームへ</button><button class="btn" data-act="rcgo">ルールカードを見る</button></div>' +
-      staffBox('<p>対話シートで話した内容をもとに、家族で最終決定する。「禁止」ではなく「こう使おう」の形にする。</p>') +
-      '</section>';
-  }
-  function rcr() {
-    var secs = FORCES.map(function (f, n) {
-      var rs = S.r[n].map(function (k) { return '<li><span class="cb on"></span><span>' + f.rules[k] + '</span></li>'; }).join('');
-      rs += '<li class="blank"><span class="cb"></span><span class="blankline"></span></li>';
-      return '<div class="rc"><h3>' + f.name + '</h3><ul>' + rs + '</ul></div>';
-    }).join('');
-    var panel = staffPanel('スタッフの方へ(お渡しのヒント)', ol(['「冷蔵庫など、家族が毎日目にする所に貼ってください。」', '「決めた日」「見直す日」は、会員様の前で一緒に書き入れる。', '見直す頃にまた話す約束をする。']));
-    return '<section class="res">' + head() +
-      '<div class="rulecard"><h1>わが家のAIルール</h1><p class="date">' + today() + '</p>' + secs +
-      '<div class="sfoot"><span>決めた日<i></i></span><span>見直す日<i></i></span></div>' +
-      '<div class="sfoot"><span>親のサイン<i></i></span><span>子のサイン<i></i></span></div></div>' +
-      '<div class="print-foot">見やすい場所に貼って、ときどき見直してみてください。</div>' +
-      panel + actions('again6', [{ act: 'go', to: 'ecp', label: '連絡カードへ' }]) + '</section>';
-  }
-
-  /* ---------- ツール7: スマホが使えない日の連絡カード ---------- */
-  var ESTEPS = [
-    '離れているときの集合場所を、「家の近く」と「学校の近く」の2か所、決めておく',
-    '災害用伝言ダイヤル「171」に電話し、録音は「1」、聞くときは「2」を押す(自宅の電話番号を使う)',
-    '遠くに住む親戚を「連絡のまとめ役」にして、みんなの無事を伝える',
-    '連絡先は紙に書いて、財布やかばんに入れておく'
-  ];
-  function ecp() {
-    var opts = ESTEPS.map(function (t, k) {
-      var on = S.ec.indexOf(k) >= 0;
-      return '<button class="opt multi' + (on ? ' sel' : '') + '" data-act="ec" data-i="' + k + '"><span class="dot"></span><span class="txt">' + t + '</span></button>';
-    }).join('');
-    return '<section><div class="qnum">連絡の手順を選ぶ</div>' +
-      '<h2 class="q">スマホが使えなくなったら、どうしますか?</h2>' +
-      '<p class="qsub">家族で決めたいものを選んでください(いくつでも)。連絡先は、印刷したカードに手書きします。この画面では入力しません。</p>' +
-      '<div class="opts">' + opts + '</div>' +
-      '<div class="qnav"><button class="ghost" data-act="go" data-to="hub">ホームへ</button><button class="btn" data-act="ecgo">連絡カードを見る</button></div>' +
-      staffBox('<p>「デジタルと紙の二重の備え」の具体化。電話番号は、この画面では入力せず、紙に書いてもらう。</p>') +
-      '</section>';
-  }
-  function ecr() {
-    var rows = '';
-    for (var i = 0; i < 4; i++) rows += '<li class="blank"><span class="blankline"></span><span class="blankline"></span></li>';
-    var steps = S.ec.slice().sort().map(function (k) { return '<li><span class="cb on"></span><span>' + ESTEPS[k] + '</span></li>'; }).join('');
-    steps += '<li class="blank"><span class="cb"></span><span class="blankline"></span></li>';
-    var panel = staffPanel('スタッフの方へ(お渡しのヒント)', ol(['連絡先は、会員様の前で一緒に書く。', '「財布・かばんに入れて、1年に1回見直してください。」', '実際に集合場所へ、家族で歩いてみることをすすめる。']));
-    return '<section class="res">' + head() +
-      '<div class="cardcut"><h1>スマホが使えない日の連絡カード</h1><p class="date">' + today() + '</p>' +
-      '<div class="block"><h2>連絡先(名前と電話番号)</h2><ul class="srules">' + rows + '</ul></div>' +
-      '<div class="block"><h2>集合場所</h2><ul class="srules"><li class="blank"><span>家の近く:</span><span class="blankline"></span></li><li class="blank"><span>学校の近く:</span><span class="blankline"></span></li></ul></div>' +
-      '<div class="block"><h2>連絡の手順</h2><ul class="srules">' + steps + '</ul></div>' +
-      '<p class="cutlabel">切り取って、財布やかばんに入れておきましょう</p></div>' +
-      '<div class="print-foot">この用紙は、ご家族でお持ち帰りください。</div>' +
-      panel + actions('again7', [{ act: 'go', to: 'rcp', label: 'ルールカードへ' }]) + '</section>';
+      panel + actions('again3', []) + '</section>';
   }
 
   /* ---------- 画面切り替え ---------- */
   var SCREENS = { hub: hub, cs: cs, cq: cq, cr: cr, t1i: t1i, t1s: t1s, t1r: t1r, t2p: t2p, t2s: t2s, t2r: t2r,
-                  t3i: t3i, t3q: t3q, t3r: t3r, t4i: t4i, t4s: t4s, t4r: t4r, t5p: t5p, t5r: t5r,
-                  rcp: rcp, rcr: rcr, ecp: ecp, ecr: ecr };
-  var RESULTS = { cr: 1, t1r: 1, t2r: 1, t3r: 1, t4r: 1, t5r: 1, rcr: 1, ecr: 1 };
+                  t3i: t3i, t3q: t3q, t3r: t3r };
+  var RESULTS = { cr: 1, t1r: 1, t2r: 1, t3r: 1 };
 
   function render(keep) {
     var y = keep ? window.scrollY : 0;
@@ -1034,9 +827,9 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
     window.scrollTo(0, y);
   }
 
-  function toggle(arr, i, max) {
+  function toggle(arr, i) {
     var k = arr.indexOf(i);
-    if (k >= 0) arr.splice(k, 1); else if (arr.length < (max || 2)) arr.push(i);
+    if (k >= 0) arr.splice(k, 1); else if (arr.length < 2) arr.push(i);
   }
   function setOrder() {
     S.order = [0, 1, 2, 3];
@@ -1048,7 +841,7 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
   function fullReset() {
     S.check = null; S.ci = 0; S.ca = []; S.order = [0, 1, 2, 3];
     S.step = 0; S.q = [-1, -1, -1, -1]; S.r = [[], [], [], []]; S.stage = -1; S.auto = false; S.pick = [];
-    S.si = 0; S.sa = []; S.pk = []; S.tm = []; S.ec = [];
+    S.si = 0; S.sa = [];
     S.screen = 'hub';
   }
 
@@ -1106,18 +899,6 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
     else if (a === 't3next') { if (S.si < SCAMS.length - 1) { S.si++; S.screen = 't3q'; } else { S.screen = 't3r'; } render(); }
     else if (a === 't3back') { if (S.si > 0) { S.si--; S.screen = 't3q'; } else { S.screen = 't3i'; } render(); }
     else if (a === 'again3') { S.si = 0; S.sa = []; S.screen = 't3i'; render(); }
-    else if (a === 'pk') { toggle(S.pk, i, 3); render(true); }
-    else if (a === 't4go') { if (S.pk.length) { S.screen = 't4r'; render(); } }
-    else if (a === 'again4') { S.pk = []; S.screen = 't4i'; render(); }
-    else if (a === 'tm') { toggle(S.tm, i, 6); render(true); }
-    else if (a === 't5go') { S.screen = 't5r'; render(); }
-    else if (a === 'again5') { S.tm = []; S.screen = 't5p'; render(); }
-    else if (a === 'rc') { toggle(S.r[+t.getAttribute('data-f')], i); render(true); }
-    else if (a === 'rcgo') { S.screen = 'rcr'; render(); }
-    else if (a === 'again6') { S.screen = 'rcp'; render(); }
-    else if (a === 'ec') { toggle(S.ec, i, 4); render(true); }
-    else if (a === 'ecgo') { S.screen = 'ecr'; render(); }
-    else if (a === 'again7') { S.ec = []; S.screen = 'ecp'; render(); }
     else if (a === 'reset') { fullReset(); render(); }
   });
 
