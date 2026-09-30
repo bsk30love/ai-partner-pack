@@ -514,7 +514,7 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
 
   var S = { screen: 'hub', staff: false, ci: 0, ca: [], check: null, order: [0, 1, 2, 3], fromCheck: false,
             step: 0, q: [-1, -1, -1, -1], r: [[], [], [], []], stage: -1, auto: false, pick: [],
-            si: 0, sa: [], pk: [], tm: [] };
+            si: 0, sa: [], pk: [], tm: [], ec: [] };
 
   /* ---------- 共通の部品 ---------- */
   function head() {
@@ -558,12 +558,14 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
         '<button class="tool" data-act="go" data-to="t3i"><span class="tn">ツール3</span><span class="tt">あやしい連絡 見分け練習</span><span class="td">SMS・メール・広告・LINEを見て、あやしいかどうかを一緒に考えます。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
         '<button class="tool" data-act="go" data-to="t4i"><span class="tn">ツール4</span><span class="tt">AIに聞いてみよう</span><span class="td">暮らしの場面ごとの聞き方の例で、AIに質問する練習をします。</span><span class="tm">約10分 ・ 印刷できます</span></button>' +
         '<button class="tool" data-act="go" data-to="t5p"><span class="tn">ツール5</span><span class="tt">AI用語ミニ辞典</span><span class="td">学校やニュースで聞く言葉を、「お子様にはこう伝える」一言つきで。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
+        '<button class="tool" data-act="go" data-to="rcp"><span class="tn">ツール6</span><span class="tt">わが家のAIルールカード</span><span class="td">話し合って決めたルールを、冷蔵庫に貼れる1枚のカードにします。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
+        '<button class="tool" data-act="go" data-to="ecp"><span class="tn">ツール7</span><span class="tt">スマホが使えない日の連絡カード</span><span class="td">連絡先・集合場所・連絡の手順を、紙1枚にまとめます。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
       '</div>' +
       '<p class="hubflow">おすすめの順番は「安心チェック → 対話シート → 成長マップ」です。時間がないときは、どれかひとつだけでも大丈夫です。</p>' +
       '<p class="note">お名前や会員番号の入力はありません。答えはこの端末に保存されません。</p>' +
       staffBox('<p>最初に「診断ではなく、お話のきっかけです」と伝える。会員様の横に座り、画面を真ん中に置いて一緒に見る。</p>' +
         '<p>ご家族が変わるときは、下の「新しいご家族で始める」で、入力内容をすべて消してから始める。</p>') +
-      (S.check || S.stage >= 0 || S.q.some(function (x) { return x >= 0; }) || S.sa.length || S.pk.length || S.tm.length ? '<div class="qnav no-print"><span></span><button class="ghost" data-act="reset">新しいご家族で始める(入力内容を消す)</button></div>' : '') +
+      (S.check || S.stage >= 0 || S.q.some(function (x) { return x >= 0; }) || S.sa.length || S.pk.length || S.tm.length || S.ec.length ? '<div class="qnav no-print"><span></span><button class="ghost" data-act="reset">新しいご家族で始める(入力内容を消す)</button></div>' : '') +
       '</section>';
   }
 
@@ -945,10 +947,80 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
       panel + actions('again5', [{ act: 'go', to: 't3i', label: '見分け練習へ' }]) + '</section>';
   }
 
+  /* ---------- ツール6: わが家のAIルールカード ---------- */
+  function rcp() {
+    var body = FORCES.map(function (f, n) {
+      var full = S.r[n].length >= 2;
+      var opts = f.rules.map(function (t, k) {
+        var on = S.r[n].indexOf(k) >= 0;
+        return '<button class="opt multi' + (on ? ' sel' : '') + '" data-act="rc" data-f="' + n + '" data-i="' + k + '"' + (full && !on ? ' disabled' : '') + '><span class="dot"></span><span class="txt">' + t + '</span></button>';
+      }).join('');
+      return '<div class="sect"><h3>' + f.name + '</h3><p class="hint">' + f.desc + '(2つまで)</p><div class="opts">' + opts + '</div></div>';
+    }).join('');
+    var note = S.r.some(function (a) { return a.length; }) ? '<p class="autonote">対話シートで選んだルールが、そのまま入っています。変えてもかまいません。</p>' : '';
+    return '<section><div class="qnum">ルールを選ぶ</div>' +
+      '<h2 class="q">わが家のルールを、決めましょう</h2>' +
+      '<p class="qsub">やってみたいものを選んでください。選ばないテーマは、カードの空欄に家族の言葉で書けます。</p>' + note + body +
+      '<div class="qnav"><button class="ghost" data-act="go" data-to="hub">ホームへ</button><button class="btn" data-act="rcgo">ルールカードを見る</button></div>' +
+      staffBox('<p>対話シートで話した内容をもとに、家族で最終決定する。「禁止」ではなく「こう使おう」の形にする。</p>') +
+      '</section>';
+  }
+  function rcr() {
+    var secs = FORCES.map(function (f, n) {
+      var rs = S.r[n].map(function (k) { return '<li><span class="cb on"></span><span>' + f.rules[k] + '</span></li>'; }).join('');
+      rs += '<li class="blank"><span class="cb"></span><span class="blankline"></span></li>';
+      return '<div class="rc"><h3>' + f.name + '</h3><ul>' + rs + '</ul></div>';
+    }).join('');
+    var panel = staffPanel('スタッフの方へ(お渡しのヒント)', ol(['「冷蔵庫など、家族が毎日目にする所に貼ってください。」', '「決めた日」「見直す日」は、会員様の前で一緒に書き入れる。', '見直す頃にまた話す約束をする。']));
+    return '<section class="res">' + head() +
+      '<div class="rulecard"><h1>わが家のAIルール</h1><p class="date">' + today() + '</p>' + secs +
+      '<div class="sfoot"><span>決めた日<i></i></span><span>見直す日<i></i></span></div>' +
+      '<div class="sfoot"><span>親のサイン<i></i></span><span>子のサイン<i></i></span></div></div>' +
+      '<div class="print-foot">見やすい場所に貼って、ときどき見直してみてください。</div>' +
+      panel + actions('again6', [{ act: 'go', to: 'ecp', label: '連絡カードへ' }]) + '</section>';
+  }
+
+  /* ---------- ツール7: スマホが使えない日の連絡カード ---------- */
+  var ESTEPS = [
+    '離れているときの集合場所を、「家の近く」と「学校の近く」の2か所、決めておく',
+    '災害用伝言ダイヤル「171」に電話し、録音は「1」、聞くときは「2」を押す(自宅の電話番号を使う)',
+    '遠くに住む親戚を「連絡のまとめ役」にして、みんなの無事を伝える',
+    '連絡先は紙に書いて、財布やかばんに入れておく'
+  ];
+  function ecp() {
+    var opts = ESTEPS.map(function (t, k) {
+      var on = S.ec.indexOf(k) >= 0;
+      return '<button class="opt multi' + (on ? ' sel' : '') + '" data-act="ec" data-i="' + k + '"><span class="dot"></span><span class="txt">' + t + '</span></button>';
+    }).join('');
+    return '<section><div class="qnum">連絡の手順を選ぶ</div>' +
+      '<h2 class="q">スマホが使えなくなったら、どうしますか?</h2>' +
+      '<p class="qsub">家族で決めたいものを選んでください(いくつでも)。連絡先は、印刷したカードに手書きします。この画面では入力しません。</p>' +
+      '<div class="opts">' + opts + '</div>' +
+      '<div class="qnav"><button class="ghost" data-act="go" data-to="hub">ホームへ</button><button class="btn" data-act="ecgo">連絡カードを見る</button></div>' +
+      staffBox('<p>「デジタルと紙の二重の備え」の具体化。電話番号は、この画面では入力せず、紙に書いてもらう。</p>') +
+      '</section>';
+  }
+  function ecr() {
+    var rows = '';
+    for (var i = 0; i < 4; i++) rows += '<li class="blank"><span class="blankline"></span><span class="blankline"></span></li>';
+    var steps = S.ec.slice().sort().map(function (k) { return '<li><span class="cb on"></span><span>' + ESTEPS[k] + '</span></li>'; }).join('');
+    steps += '<li class="blank"><span class="cb"></span><span class="blankline"></span></li>';
+    var panel = staffPanel('スタッフの方へ(お渡しのヒント)', ol(['連絡先は、会員様の前で一緒に書く。', '「財布・かばんに入れて、1年に1回見直してください。」', '実際に集合場所へ、家族で歩いてみることをすすめる。']));
+    return '<section class="res">' + head() +
+      '<div class="cardcut"><h1>スマホが使えない日の連絡カード</h1><p class="date">' + today() + '</p>' +
+      '<div class="block"><h2>連絡先(名前と電話番号)</h2><ul class="srules">' + rows + '</ul></div>' +
+      '<div class="block"><h2>集合場所</h2><ul class="srules"><li class="blank"><span>家の近く:</span><span class="blankline"></span></li><li class="blank"><span>学校の近く:</span><span class="blankline"></span></li></ul></div>' +
+      '<div class="block"><h2>連絡の手順</h2><ul class="srules">' + steps + '</ul></div>' +
+      '<p class="cutlabel">切り取って、財布やかばんに入れておきましょう</p></div>' +
+      '<div class="print-foot">この用紙は、ご家族でお持ち帰りください。</div>' +
+      panel + actions('again7', [{ act: 'go', to: 'rcp', label: 'ルールカードへ' }]) + '</section>';
+  }
+
   /* ---------- 画面切り替え ---------- */
   var SCREENS = { hub: hub, cs: cs, cq: cq, cr: cr, t1i: t1i, t1s: t1s, t1r: t1r, t2p: t2p, t2s: t2s, t2r: t2r,
-                  t3i: t3i, t3q: t3q, t3r: t3r, t4i: t4i, t4s: t4s, t4r: t4r, t5p: t5p, t5r: t5r };
-  var RESULTS = { cr: 1, t1r: 1, t2r: 1, t3r: 1, t4r: 1, t5r: 1 };
+                  t3i: t3i, t3q: t3q, t3r: t3r, t4i: t4i, t4s: t4s, t4r: t4r, t5p: t5p, t5r: t5r,
+                  rcp: rcp, rcr: rcr, ecp: ecp, ecr: ecr };
+  var RESULTS = { cr: 1, t1r: 1, t2r: 1, t3r: 1, t4r: 1, t5r: 1, rcr: 1, ecr: 1 };
 
   function render(keep) {
     var y = keep ? window.scrollY : 0;
@@ -976,7 +1048,7 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
   function fullReset() {
     S.check = null; S.ci = 0; S.ca = []; S.order = [0, 1, 2, 3];
     S.step = 0; S.q = [-1, -1, -1, -1]; S.r = [[], [], [], []]; S.stage = -1; S.auto = false; S.pick = [];
-    S.si = 0; S.sa = []; S.pk = []; S.tm = [];
+    S.si = 0; S.sa = []; S.pk = []; S.tm = []; S.ec = [];
     S.screen = 'hub';
   }
 
@@ -1040,6 +1112,12 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
     else if (a === 'tm') { toggle(S.tm, i, 6); render(true); }
     else if (a === 't5go') { S.screen = 't5r'; render(); }
     else if (a === 'again5') { S.tm = []; S.screen = 't5p'; render(); }
+    else if (a === 'rc') { toggle(S.r[+t.getAttribute('data-f')], i); render(true); }
+    else if (a === 'rcgo') { S.screen = 'rcr'; render(); }
+    else if (a === 'again6') { S.screen = 'rcp'; render(); }
+    else if (a === 'ec') { toggle(S.ec, i, 4); render(true); }
+    else if (a === 'ecgo') { S.screen = 'ecr'; render(); }
+    else if (a === 'again7') { S.ec = []; S.screen = 'ecp'; render(); }
     else if (a === 'reset') { fullReset(); render(); }
   });
 
