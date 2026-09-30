@@ -1,0 +1,821 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>AI学習伴走パック</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: AIくらし安心チェックと同じ和紙風の1カラム紙面。ホームから2つのツールへ、どちらも最後はA4の用紙(手書き枠つき)になる。 */
+
+/* Layout: 左そろえの1カラム。質問は1画面に1つ、選択肢は大きなカード。結果は「いまの立ち位置 → 4つの力 → 次の一歩」の順で、そのままA4 1枚の紙面になる。 */
+:root {
+  --paper: #f2e9d6;
+  --paper-2: #eadfc6;
+  --card: #faf5e8;
+  --ink: #3b3226;
+  --ink-soft: #6b5e4d;
+  --line: #d6c7a8;
+  --accent: #587548;
+  --accent-ink: #ffffff;
+  --accent-soft: #dde6cc;
+  --warm: #9a5522;
+  --f-display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .22  0 0 0 .08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #2a241c; --paper-2: #332b21; --card: #3a3227; --ink: #f0e6d2; --ink-soft: #bfb29b;
+    --line: #574b3a; --accent: #9bbd86; --accent-ink: #1f2a19; --accent-soft: #3d4a33; --warm: #e8a86a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #2a241c; --paper-2: #332b21; --card: #3a3227; --ink: #f0e6d2; --ink-soft: #bfb29b;
+  --line: #574b3a; --accent: #9bbd86; --accent-ink: #1f2a19; --accent-soft: #3d4a33; --warm: #e8a86a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: var(--grain);
+  color: var(--ink);
+  font-family: var(--f-body);
+  line-height: 1.7;
+  padding-inline: clamp(16px, 4vw, 40px);
+  padding-block: 20px 48px;
+}
+#app { --fs: 1.125rem; font-size: var(--fs); max-width: 920px; margin: 0 auto; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--warm); outline-offset: 3px; }
+
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 1.4em; min-height: 2.4em; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: .95em; letter-spacing: .06em; color: var(--ink-soft); }
+.ghost { background: none; border: 1px solid var(--line); border-radius: 999px; padding: .45em 1.1em; font-size: .85em; color: var(--ink-soft); cursor: pointer; }
+.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5em; min-height: 3.2em; padding: .6em 2.2em; border-radius: 999px; border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 1em; cursor: pointer; }
+.btn.sub { background: transparent; color: var(--accent); }
+.btn:active { transform: scale(.98); }
+
+/* start */
+.start h1 { font-family: var(--f-display); font-size: 2.5em; line-height: 1.3; margin: 0 0 .4em; text-wrap: balance; font-weight: 700; }
+.lead { font-size: 1.15em; max-width: 32em; margin: 0 0 1.2em; }
+.facts { display: flex; flex-wrap: wrap; gap: .6em; padding: 0; margin: 0 0 1.8em; list-style: none; }
+.facts li { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: .3em 1.1em; font-size: .9em; }
+.note { color: var(--ink-soft); font-size: .9em; max-width: 34em; margin: 1.4em 0 0; }
+
+/* quiz */
+.prog { display: flex; gap: .4em; margin-bottom: 1.2em; }
+.prog i { flex: 1; height: .4em; border-radius: 99px; background: var(--line); }
+.prog i.on { background: var(--accent); }
+.qnum { font-size: .85em; color: var(--ink-soft); letter-spacing: .08em; }
+.q { font-family: var(--f-display); font-size: 1.6em; line-height: 1.45; margin: .2em 0 .3em; text-wrap: balance; font-weight: 700; }
+.qsub { color: var(--ink-soft); margin: 0 0 1.2em; font-size: .95em; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: .9em; }
+.opt { display: flex; gap: .8em; align-items: flex-start; text-align: left; min-height: 4.6em; padding: 1em 1.1em; background: var(--card); border: 2px solid var(--line); border-radius: 16px; cursor: pointer; line-height: 1.55; min-width: 0; transition: border-color .15s, background-color .15s, transform .1s; }
+.opt:hover { border-color: var(--accent); }
+.opt:active { transform: scale(.99); }
+.opt .dot { flex: none; width: 1.3em; height: 1.3em; margin-top: .15em; border-radius: 50%; border: 2px solid var(--line); background: var(--paper); }
+.opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+.opt.sel .dot { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 .22em var(--accent-soft); }
+.qnav { margin-top: 1.4em; display: flex; justify-content: space-between; align-items: center; min-height: 2.6em; }
+
+/* result */
+.res h1 { font-family: var(--f-display); font-size: 1.9em; margin: .1em 0 .1em; line-height: 1.35; text-wrap: balance; }
+.date { color: var(--ink-soft); font-size: .85em; margin: 0; }
+.sign-head { display: none; grid-template-columns: 1fr 1.5fr; gap: 8mm; margin-bottom: 6mm; }
+.sign-box { border: 1.5px solid #444; border-radius: 2mm; height: 16mm; padding: 1mm 2.5mm; }
+.sign-box span { font-size: 8pt; color: #555; }
+.block { margin-top: 1.6em; }
+.block h2 { font-family: var(--f-display); font-size: 1.15em; margin: 0 0 .6em; display: flex; align-items: center; gap: .6em; }
+.block h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5em; }
+.step { border: 1px solid var(--line); border-radius: 12px; padding: .7em .7em .8em; background: var(--card); color: var(--ink-soft); min-width: 0; }
+.step b { display: block; font-size: .95em; line-height: 1.4; }
+.step small { display: block; font-size: .75em; line-height: 1.5; margin-top: .2em; }
+.step .here { display: block; font-size: .7em; font-weight: 700; margin-bottom: .3em; letter-spacing: .05em; }
+.step.cur { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.stagemsg { margin: .8em 0 0; }
+.forces { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: .8em; }
+.force { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .9em 1em; min-width: 0; }
+.force h3 { margin: 0; font-size: 1em; display: flex; justify-content: space-between; align-items: center; gap: .5em; flex-wrap: wrap; }
+.tag { font-size: .72em; padding: .1em .8em; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.tag.warm { background: transparent; border: 1px solid var(--warm); color: var(--warm); }
+.fd { font-size: .85em; color: var(--ink-soft); margin: .2em 0 .6em; line-height: 1.5; }
+.meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: .25em; }
+.meter i { height: .55em; border-radius: 99px; background: var(--line); }
+.meter i.on { background: var(--accent); }
+.flabel { font-size: .85em; margin-top: .4em; font-weight: 700; }
+.nexts { margin: 0; padding: 0; list-style: none; display: grid; gap: .7em; }
+.nexts li { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .8em 1em; }
+.nexts b { display: block; font-size: .85em; color: var(--accent); margin-bottom: .1em; }
+.concern { display: block; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .6em 1.1em; font-weight: 700; line-height: 1.6; }
+.staff { margin-top: 1.6em; border: 1px dashed var(--line); border-radius: 14px; padding: .8em 1em; background: var(--paper-2); }
+.staff summary { cursor: pointer; font-weight: 700; font-size: .95em; }
+.staff p { margin: .5em 0 0; font-size: .95em; }
+.staff h4 { margin: 1.2em 0 .3em; font-size: .95em; color: var(--accent); }
+.staff ul, .staff ol { margin: .3em 0 0; padding-left: 1.4em; font-size: .95em; }
+.staff li { margin-top: .25em; }
+.staff .tipline { color: var(--ink-soft); }
+.actions { margin-top: 1.8em; display: flex; gap: .8em; flex-wrap: wrap; align-items: center; }
+.actions .hintline { color: var(--ink-soft); font-size: .85em; flex-basis: 100%; margin: 0; }
+.print-foot { display: none; margin-top: 6mm; font-size: .85em; color: #555; }
+.pp-only { display: none; }
+body.pp { background-image: none; background-color: #8a8a8a; }
+body.pp .pp-only { display: flex; justify-content: space-between; align-items: center; gap: 12px; max-width: 794px; margin: 0 auto 12px; color: #fff; font-size: .9rem; }
+body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px 28px; box-shadow: 0 2px 16px rgba(0, 0, 0, .35); }
+
+@media (max-width: 560px) {
+  .start h1 { font-size: 2em; }
+  .stepper { gap: .35em; }
+  .step { padding: .6em .5em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opt { transition: none; }
+}
+@page { size: A4; margin: 12mm; }
+@media print { #app { max-width: none; } body { padding: 0; } }
+
+
+/* pack: hub */
+.hubgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 1em; margin: 1.4em 0; }
+.tool { display: flex; flex-direction: column; gap: .35em; text-align: left; padding: 1.3em 1.3em 1.2em; background: var(--card); border: 2px solid var(--line); border-radius: 18px; cursor: pointer; min-width: 0; }
+.tool.wide { grid-column: 1 / -1; background: var(--accent-soft); }
+.tool:hover { border-color: var(--accent); }
+.tool:active { transform: scale(.99); }
+.tool .tn { font-size: .8em; color: var(--accent); font-weight: 700; letter-spacing: .08em; }
+.tool .tt { font-family: var(--f-display); font-size: 1.45em; font-weight: 700; line-height: 1.35; }
+.tool .td { color: var(--ink-soft); font-size: .95em; }
+.tool .tm { margin-top: .5em; font-size: .85em; color: var(--ink-soft); }
+
+/* pack: steps */
+.sect { margin-top: 1.6em; }
+.sect h3 { font-family: var(--f-display); font-size: 1.1em; margin: 0 0 .3em; }
+.sect .hint { color: var(--ink-soft); font-size: .9em; margin: 0 0 .8em; }
+.opt .txt { min-width: 0; }
+.who { display: inline-block; font-size: .72em; font-weight: 700; padding: .05em .8em; border-radius: 99px; background: var(--accent-soft); color: var(--accent); margin-bottom: .3em; }
+.opt.multi .dot { border-radius: 6px; }
+.opt.multi.sel .dot { box-shadow: none; position: relative; }
+.opt.multi.sel .dot::after { content: ""; position: absolute; left: .4em; top: .12em; width: .3em; height: .6em; border: solid var(--accent-ink); border-width: 0 .15em .15em 0; transform: rotate(45deg); }
+.opt:disabled { opacity: .5; cursor: default; }
+.opt .nm { font-weight: 700; display: block; }
+.opt .ds { color: var(--ink-soft); font-size: .92em; display: block; }
+.qnav .btn { min-height: 3em; padding-inline: 1.8em; }
+
+/* pack: sheets */
+.sheetgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: .9em; }
+.sblock { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .8em 1em; min-width: 0; }
+.sblock h3 { margin: 0; font-family: var(--f-display); font-size: 1.05em; }
+.sblock .sd { font-size: .8em; color: var(--ink-soft); margin: .1em 0 .4em; line-height: 1.5; }
+.sq { font-size: .9em; margin: .3em 0; }
+.lines i { display: block; height: 1.9em; border-bottom: 1px solid var(--line); }
+.srules { list-style: none; margin: .5em 0 0; padding: 0; display: grid; gap: .3em; font-size: .9em; }
+.srules li { display: flex; gap: .5em; align-items: flex-start; }
+.srules li.blank { align-items: flex-end; }
+.cb { flex: none; width: 1em; height: 1em; border: 1.5px solid var(--ink-soft); border-radius: 3px; margin-top: .25em; position: relative; }
+.srules li.blank .cb { margin-top: 0; margin-bottom: .2em; }
+.cb.on::after { content: ""; position: absolute; left: .28em; top: .02em; width: .3em; height: .62em; border: solid var(--accent); border-width: 0 .15em .15em 0; transform: rotate(45deg); }
+.blankline { flex: 1; border-bottom: 1px solid var(--line); height: 1.5em; }
+.sfoot { display: flex; flex-wrap: wrap; gap: 1.4em; margin-top: 1em; font-size: .95em; }
+.sfoot span { display: flex; gap: .5em; align-items: flex-end; flex: 1; min-width: 10em; }
+.sfoot span i { flex: 1; border-bottom: 1px solid var(--ink-soft); height: 1.4em; }
+.plain { margin: 0; }
+
+/* pack: stairs */
+.stairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4em; align-items: end; margin-top: 1.4em; }
+.stair { position: relative; border: 1px solid var(--line); border-radius: 12px 12px 0 0; background: var(--card); padding: .6em .6em .7em; display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; }
+.stair:nth-child(1) { min-height: 8em; }
+.stair:nth-child(2) { min-height: 11em; }
+.stair:nth-child(3) { min-height: 14em; }
+.stair:nth-child(4) { min-height: 17em; }
+.stair.past { background: var(--accent-soft); }
+.stair.cur { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.stair b { font-size: .95em; line-height: 1.4; }
+.stair small { font-size: .72em; line-height: 1.5; opacity: .9; }
+.stair .here { align-self: flex-start; margin-bottom: auto; background: var(--accent-ink); color: var(--accent); font-size: .7em; font-weight: 700; padding: .05em .7em; border-radius: 99px; }
+.stair .reach { font-size: .7em; margin-top: .7em; display: flex; gap: .3em; align-items: flex-end; }
+.stair .reach i { flex: 1; border-bottom: 1px solid currentColor; height: 1.3em; opacity: .55; }
+.flag { position: absolute; top: -1.9em; right: .5em; width: 1.4em; height: 1.8em; }
+.para { margin: 0; }
+
+@media (max-width: 560px) {
+  .stair { padding: .5em .4em .6em; }
+  .stair b { font-size: .85em; }
+}
+.ghost.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.staffbox { margin: 1.2em 0 0; padding: .8em 1em; border-radius: 14px; border: 1.5px dashed var(--accent); background: var(--accent-soft); font-size: .92em; line-height: 1.7; }
+.staffbox b.sb { display: block; color: var(--accent); font-size: .85em; letter-spacing: .06em; margin-bottom: .2em; }
+.staffbox p { margin: .2em 0; }
+.cline { margin: .6em 0 0; padding: .5em .9em; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 10px 10px 0; font-size: .95em; }
+.cline b { color: var(--accent); }
+.autonote { margin: .8em 0 0; padding: .7em 1em; border-radius: 12px; background: var(--accent-soft); font-size: .95em; }
+.hubflow { color: var(--ink-soft); font-size: .9em; margin: 0; }
+[hidden]{display:none!important}
+</style>
+
+</head><body>
+<div class="pp-only" id="ppBar"><span>印刷イメージ(A4)</span><button class="ghost" id="ppExit" style="color:#fff;border-color:#fff">画面にもどる</button></div>
+<div id="app">
+  <div class="top no-print">
+    <span class="brand">AI学習伴走パック</span>
+    <span style="display:flex;gap:.5em;flex-wrap:wrap">
+      <button class="ghost" id="staffBtn" aria-pressed="false">スタッフ用: オフ</button>
+      <button class="ghost" id="homeBtn" hidden>ホームへ</button>
+    </span>
+  </div>
+  <main id="main"></main>
+</div>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var framed = (function () { try { return window.top !== window.self; } catch (e) { return true; } })();
+  function $(s) { return document.querySelector(s); }
+
+  /* ---------- データ: 4つの力 ---------- */
+  var FORCES = [
+    { name: '情報判断力', desc: 'AIの答えをうのみにせず、本当かどうかを見分ける力',
+      cdesc: 'AIの答えやネットの情報を、見分ける力',
+      csteps: [
+        'まずは「AIも間違えることがある」と知るところから。同じことを2か所で調べてみる練習を、ご一緒にしましょう。',
+        '見分けるコツをひとつだけ。「出どころはどこ?」と確かめるくせを、ご家族と一緒に。',
+        'すでにしっかり見分けられています。その見分け方を、ご家族にも話してみましょう。'
+      ],
+      cask: '最近、ネットやAIで調べて「本当かな?」と思ったことはありますか?',
+      sfollow: '「そのとき、どうやって確かめましたか?」(確かめ方を聞いてから、コツをひとつだけ)',
+      sangle: '「出どころはどこ?」「2か所で調べる」の2つが切り口。',
+      qs: [
+        { w: '親から', t: 'AIに聞いたことが、まちがっていたことはある?' },
+        { w: '子から', t: 'ネットで見たことが本当かどうか、どうやって確かめてる?' },
+        { w: 'ふたりで', t: 'AIの答えと先生の話がちがったら、どうする?' }
+      ],
+      rules: [
+        'AIの答えは、もう1か所で調べて確かめる',
+        'お金・健康・約束のことは、AIだけで決めない',
+        '「出どころはどこ?」と、まず考える',
+        'わからないことは、ひとりで抱えず家族に聞く'
+      ],
+      ask: 'AIの答えが合っているか、どうやったら確かめられそう?' },
+    { name: '生活設計力', desc: 'アルゴリズムに操られず、自分の幸せのためにAIを使いこなす力',
+      cdesc: '自分の暮らしに合わせて、デジタルを選ぶ力',
+      csteps: [
+        '行政の連絡・防災・家族との連絡。この3つにしぼって、まずひとつ使い方を決めましょう。',
+        '紙の連絡メモと、スマホでの連絡。両方そろえる「二重の備え」を、一緒に作りましょう。',
+        '暮らしに合った使い方ができています。AIを、調べものや家事のお手伝いに加えてみませんか。'
+      ],
+      cask: 'スマホが急に使えなくなったら、まず誰に、どうやって連絡しますか?',
+      sfollow: '「そのとき頼りになるのは、紙・スマホ・人のどれですか?」',
+      sangle: '連絡先を1件、紙に書いておくなど、その場でできる小さな備えから。',
+      qs: [
+        { w: '親から', t: 'スマホやAIを、どんなときに使うと気持ちがいい?' },
+        { w: '子から', t: 'お父さん・お母さんは、スマホで助かったことはある?' },
+        { w: 'ふたりで', t: 'スマホを使わない時間を作るなら、いつがいいと思う?' }
+      ],
+      rules: [
+        'ごはんや寝る前は、スマホやAIを使わない時間にする',
+        '防災や連絡に使う方法は、親子で決めておく',
+        'スマホが使えないときの連絡方法を、紙に書いておく',
+        'AIは、自分のやりたいことのために使う'
+      ],
+      ask: 'スマホがなかった頃は、どんな時間の使い方をしていたか聞いてみたいね。' },
+    { name: '共感実践力', desc: '画面の向こう側にいる相手を、尊重する力',
+      cdesc: '画面の向こうの相手を、思いやる力',
+      csteps: [
+        '「やめなさい」の前に、「どんなときに使っているの?」と聞いてみることから始めましょう。',
+        '困ったことが起きたときだけでなく、日ごろから「相手はどう感じるかな?」と話してみましょう。',
+        '思いやりを、家庭で話せています。お子様が感じたことを、聞く時間をもう少し増やしてみましょう。'
+      ],
+      cask: 'お子様がスマホやAIで楽しそうにしていたのは、どんなときでしたか?',
+      sfollow: '「そのとき、お子様はどんな表情でしたか?」',
+      sangle: '「やめなさい」の前に、「何をしているの?」と聞くところから。',
+      qs: [
+        { w: '親から', t: 'LINEやSNSで、相手の気持ちを考えて迷ったことはある?' },
+        { w: '子から', t: 'メッセージを送る前に、読み返すことはある?' },
+        { w: 'ふたりで', t: '言われてうれしかった言葉と、いやだった言葉を、ひとつずつ教え合おう' }
+      ],
+      rules: [
+        '送る前に、相手の気持ちを想像してから送る',
+        'AIにも人にも、ていねいな言葉を使う',
+        'いやな気持ちになったら、すぐ家族に話す',
+        '人の写真や名前は、許しをもらってから使う'
+      ],
+      ask: 'その言葉を受け取った人は、どんな気持ちになるかな?' },
+    { name: '倫理的判断力', desc: 'デジタルの世界でも、人として正しい使い方を選ぶ力',
+      cdesc: 'デジタルの中でも、人として正しい使い方を選ぶ力',
+      csteps: [
+        'ルールを決める前に、「AIに任せてよいこと」と「自分でやること」を、親子でひとつずつ挙げてみましょう。',
+        '「禁止」から、「使ってよい場面」を一緒に決めるルール作りへ。まずは1場面だけで十分です。',
+        '親子でルールを決められています。ときどき「このルールでいいかな?」と見直してみましょう。'
+      ],
+      cask: 'AIに宿題を手伝ってもらうのは、どこまでならいいと思いますか?',
+      sfollow: '「ルールを作るなら、まず何から決めたいですか?」',
+      sangle: '「AIに任せてよいこと」と「自分でやること」をひとつずつ挙げてもらう。',
+      qs: [
+        { w: '親から', t: '宿題のとき、AIにどこまで手伝ってもらうのはありだと思う?' },
+        { w: '子から', t: 'AIに書いてもらった作文を、自分の作品として出すのはどう思う?' },
+        { w: 'ふたりで', t: '人の写真や名前を、AIやSNSに入れていい場合とだめな場合は?' }
+      ],
+      rules: [
+        '宿題は、まず自分で考えてからAIを使う',
+        'AIに手伝ってもらった部分は、そう伝える',
+        '「まちがっているかも」と思ったら、立ち止まる',
+        '自分や家族の個人情報は、AIに入れない'
+      ],
+      ask: '自分で考えた部分と、AIに手伝ってもらった部分は、どう分けられそう?' }
+  ];
+
+  /* ---------- データ: 4つの段階 ---------- */
+  var STAGES = [
+    { name: 'わからない', sub: '焦りと孤独', csub: '不安が大きい時期',
+      msg: 'いまは「わからない」と感じることが多いようです。それは、ご家族のことを大切に考えているからこそ。ここから一歩ずつで大丈夫です。',
+      pick: '何から始めていいかわからず、焦りや不安がある。',
+      now: '新しいことが多すぎて、何から始めればよいか決められない時期です。誰にも聞けず、焦りや孤独を感じやすくなります。',
+      sign: '「これならできそう」と思える小さなことが、ひとつ見つかった。',
+      steps: ['困っていることを、ひとつだけ紙に書き出す', '家族の連絡先を、紙にも書いておく', 'AIに「中学生の勉強内容を、やさしく教えて」と、一緒に聞いてみる', 'わからない言葉を、ひとつだけ聞いてみる'],
+      say: '「わからないと感じるのは、ご家族を大切に考えているからですよね。今日は、ひとつだけ一緒に決めてみましょう。」',
+      tip: '教えるより先に、気持ちを聞く。「どんなことで困っていますか?」から始め、決めるのはひとつだけにする。用語や操作の説明は最小限に。' },
+    { name: '少しわかる', sub: '二重の備えを知る', csub: '備えの形が見えてきた',
+      msg: '「少しわかる」ところまで来ています。デジタルとアナログ、二重の備えの大切さが見えはじめています。',
+      pick: 'デジタルと紙、両方で備える考え方が分かってきた。',
+      now: 'デジタルとアナログ、二重の備えが大切だと分かり始めています。ただ、自分ひとりで操作するには、まだ不安が残ります。',
+      sign: 'ひとりで、ひとつの操作を最後までできた。',
+      steps: ['防災や行政の連絡を、スマホでひとつ確かめる', 'AIに聞いた答えを、もう1か所で確かめてみる', 'スマホが使えないときの連絡方法を、家族で決める', 'できた操作をひとつ、家族に話してみる'],
+      say: '「備えの大切さは、もう見えていますね。あとは形にするだけです。」',
+      tip: '一緒に操作して、できたことを言葉にして返す。デジタルと紙の「二重の備え」を、具体的にひとつだけ、その場で一緒に決める。' },
+    { name: '怖くなくなる', sub: '家族を守れる実感', csub: '自分で使える実感',
+      msg: '自分で操作でき、ご家族を守れる実感が育っています。あと少し、楽しさを足していきましょう。',
+      pick: '自分で操作できて、家族を守れる実感がある。',
+      now: '自分で操作でき、ご家族を守れる実感が湧いてきます。怪しいものに気づけるなど、自信が育つ時期です。',
+      sign: '家族に、やり方や気づきを自分の言葉で話した。',
+      steps: ['怪しい連絡の見分け方を、家族に伝える', 'AIを、家事や調べものに1回使ってみる', '親子でAIのルールを決める(対話シートを使う)', 'お子様の学びを、AIと一緒に少しのぞいてみる'],
+      say: '「ご家族を守る使い方が、ご自身でできていますね。」',
+      tip: '自分で決めた使い方を応援し、ご家族に伝える側へ背中を押す。どう伝えたいかを聞く。' },
+    { name: '楽しい!', sub: '親子で共有できる', csub: '親子で共有できる',
+      msg: '親子でデジタルを楽しめる段階です。すでにたくさんの安心をお持ちです。',
+      pick: 'デジタルの学びを、親子で楽しめている。',
+      now: '親子でデジタル学習を共有できる喜びを感じています。自分たちらしい使い方が見えてきます。',
+      sign: '自分たちのルールや使い方を、見直す話が家族から出る。',
+      steps: ['月に1回、家族でAIの使い方を見直す時間を作る', 'お子様に、AIの使い方を教えてもらう', '周りの家族や友人に、わが家のやり方を話してみる', '新しく試したいAIの使い方を、ひとつ決める'],
+      say: '「もう楽しめていますね。次は、周りの方にも広げてみませんか。」',
+      tip: '教える場面に急がず、これまでの工夫や経験をまず聞かせてもらう。新しい発見を一緒に喜ぶ。' }
+  ];
+
+  /* ---------- データ: 安心チェック ---------- */
+  var CONCERNS = [
+    { t: '子どもが学校でAIやデジタルを使っているらしいけど、何をしているのか分からない', ask: 'お子様が学校でAIを使う話、何か聞いていますか?', also: ['宿題をAIにやらせていないか心配。でも、どこまでが許容してもいいのか分からない'], follow: '「宿題にAIを使うことについて、どこまでならいいと思いますか?」', recv: '「何をしているのか見えにくいと、不安になりますよね。」' },
+    { t: 'スマホを取り上げるとケンカになる。かといって放っておくのも不安', ask: '取り上げるとケンカになるのは、どんな場面が多いですか?', also: [], follow: '「お子様が夢中になっているのは、どんなことですか?」', recv: '「取り上げても、放っておいても不安というのは、本当に迷いますよね。」' },
+    { t: 'AIの答えを、子どもがそのまま信じてしまわないか心配', ask: 'お子様がAIの答えをそのまま受け取っていると感じたのは、どんな場面ですか?', also: ['判断力や想像する力が養われないのではないか'], follow: '「お子様が、自分で考える力を発揮していると感じるのは、どんなときですか?」', recv: '「考える力を心配されるのは、お子様の将来を真剣に考えているからですね。」' },
+    { t: '詐欺メールやSMSが本物そっくりで、見分けられる自信がない', ask: '最近、「あれ?」と思った連絡や画面はありましたか?', also: ['どんなサイトが詐欺画面や詐欺の広告なのか見分けられる自信がない'], follow: '「そのとき、どこで「あやしい」と思いましたか?」', recv: '「本物そっくりなので、迷うのは自然なことです。」' },
+    { t: '私たちが子どもの頃と学び方が違いすぎて、教えてあげられない', ask: 'お子様から聞かれて、答えに詰まったのは、どんなことでしたか?', also: ['何か聞かれても、「調べてみて」としか言えなくて情けない'], follow: '「そのとき、お子様はどんな様子でしたか?」', recv: '「学び方が大きく変わっているので、戸惑うのは自然なことです。」' },
+    { t: '親の自分がスマホやAIに詳しくなくて、子どもの話についていけない、聞かれても答えられない', ask: 'どんなとき、そう感じましたか?', also: ['覚えたと思っても、すぐ新しい機能が出て、ついていけなくなる'], follow: '「新しい機能が出たとき、いつもどうしていますか?」', recv: '「そう感じていることを話してくださって、ありがとうございます。」' },
+    { t: 'スマホが壊れたり、使えなくなったら、家族と連絡が取れなくなる', ask: 'もしものとき、ご家族とはどう連絡を取る予定ですか?', also: [], follow: '「ご家族が離れている時間は、どんな時間帯が多いですか?」', recv: '「今日、考えはじめられたこと自体が、大きな一歩です。」' }
+  ];
+  var QUESTIONS = [
+    { text: 'いま、いちばん気になっていることは?', sub: 'ひとつだけ選んでください。',
+      options: CONCERNS.map(function (c) { return { t: c.t }; }) },
+    { f: 0, text: 'ネットやAIで調べたことが「本当かな?」と迷ったとき、どうしていますか?',
+      options: [
+        { s: 2, t: '別の情報とも見比べて、確かめている' },
+        { s: 0, t: 'どう確かめればいいかわからず、そのままにしてしまう' },
+        { s: 3, t: '出どころを確かめて、AIの答えは参考として使い分けている' },
+        { s: 1, t: '家族や詳しい人に聞いている' }
+      ] },
+    { f: 1, text: 'スマホやアプリの使い方は、どのように決めていますか?',
+      options: [
+        { s: 1, t: '必要なものだけ、最小限で使っている' },
+        { s: 3, t: '自分の暮らしに合わせて、AIも含めて工夫している' },
+        { s: 0, t: 'すすめられるまま、または家族にお任せしている' },
+        { s: 2, t: '行政・防災・連絡など、暮らしに必要な使い方を決めている' }
+      ] },
+    { f: 2, text: 'メッセージやSNSでの「相手への思いやり」について、ご家庭で話すことはありますか?',
+      options: [
+        { s: 2, t: '困ったことがあったときに、一緒に考えている' },
+        { s: 0, t: '話したことがなく、何と伝えればいいかわからない' },
+        { s: 3, t: '日ごろから、相手の気持ちを想像する話をしている' },
+        { s: 1, t: '「気をつけなさい」と、注意することが多い' }
+      ] },
+    { f: 3, text: 'AIに宿題や作文を手伝ってもらうことについて、ご家庭のルールは?',
+      options: [
+        { s: 3, t: '親子で話し合って、自分たちのルールを決めている' },
+        { s: 1, t: '「使わせない」ことにしている、または禁止したい' },
+        { s: 0, t: '良いのか悪いのか、判断がつかない' },
+        { s: 2, t: '使ってよい場面とだめな場面を、親が決めている' }
+      ] },
+    { f: 0, text: '怪しいメールやメッセージ、広告を見かけたとき、どうしますか?',
+      options: [
+        { s: 0, t: '本物か偽物か区別がつかず、不安になる' },
+        { s: 2, t: '送り主やリンク先を見て、自分で見分けている' },
+        { s: 1, t: '「なんだか変」と感じて、開かずに置いておく' },
+        { s: 3, t: 'ご家族にも見分け方を伝え、一緒に確認している' }
+      ] },
+    { f: 1, text: 'もしスマホが使えなくなったら、ご家族との連絡や防災の備えは?',
+      options: [
+        { s: 3, t: 'デジタルと紙の両方の備えを、家族で見直している' },
+        { s: 0, t: '考えたことがなく、少し不安' },
+        { s: 2, t: '紙のメモや集合場所など、代わりの方法を決めている' },
+        { s: 1, t: '連絡先をメモしているが、十分ではない' }
+      ] }
+  ];
+
+  var S = { screen: 'hub', staff: false, ci: 0, ca: [], check: null, order: [0, 1, 2, 3], fromCheck: false,
+            step: 0, q: [-1, -1, -1, -1], r: [[], [], [], []], stage: -1, auto: false, pick: [] };
+
+  /* ---------- 共通の部品 ---------- */
+  function head() {
+    return '<div class="sign-head"><div class="sign-box"><span>会員番号</span></div><div class="sign-box"><span>お名前</span></div></div>';
+  }
+  function today() { return new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }); }
+  function li(a) { return '<ul>' + a.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>'; }
+  function ol(a) { return '<ol>' + a.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>'; }
+  function staffBox(html) {
+    return S.staff ? '<div class="staffbox no-print"><b class="sb">スタッフの方へ</b>' + html + '</div>' : '';
+  }
+  function staffPanel(title, html) {
+    return S.staff ? '<details class="staff no-print" open><summary>' + title + '</summary>' + html + '</details>' : '';
+  }
+  function concernLine() {
+    return S.check ? '<p class="cline"><b>きょう、お話ししたいこと:</b> ' + CONCERNS[S.check.concern].t + '</p>' : '';
+  }
+  function actions(again, extras) {
+    var main = framed
+      ? '<button class="btn" id="ppBtn">印刷イメージを確認する</button>'
+      : '<button class="btn" id="printBtn">印刷する</button>';
+    var ex = extras.map(function (x) {
+      return '<button class="btn sub" data-act="' + x.act + '"' + (x.to ? ' data-to="' + x.to + '"' : '') + '>' + x.label + '</button>';
+    }).join('');
+    return '<div class="actions no-print">' + main +
+      '<button class="btn sub" data-act="' + again + '">もう一度</button>' + ex +
+      (framed ? '<p class="hintline">この画面の中では印刷できません。配布用ファイルをSafariで開くと、「印刷する」ボタンで印刷できます。</p>' : '') +
+      '</div>';
+  }
+
+  /* ---------- ホーム ---------- */
+  function hub() {
+    var done = S.check ? '<span class="tm">チェック済み: ' + STAGES[S.check.stage].name + '</span>' : '<span class="tm">約5分 ・ 印刷できます</span>';
+    return '<section class="start">' +
+      '<h1>親子で話して、<br>自分たちらしいデジタル生活を。</h1>' +
+      '<p class="lead">お話ししながら使う、3つのしくみです。どれも、最後にA4の用紙として印刷できます。</p>' +
+      '<div class="hubgrid">' +
+        '<button class="tool wide" data-act="go" data-to="cs"><span class="tn">はじめに</span><span class="tt">AIくらし安心チェック</span><span class="td">いまの安心と、気になっていることを、6つの質問で確かめます。この結果が、次の2つのツールにつながります。</span>' + done + '</button>' +
+        '<button class="tool" data-act="go" data-to="t1i"><span class="tn">ツール1</span><span class="tt">AI学習・対話シート</span><span class="td">親子で話して、わが家のAIルールをつくります。</span><span class="tm">約15分 ・ 印刷できます</span></button>' +
+        '<button class="tool" data-act="go" data-to="t2p"><span class="tn">ツール2</span><span class="tt">伴走ステップ・成長マップ</span><span class="td">いまの位置を確かめて、次の小さな一歩を決めます。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
+      '</div>' +
+      '<p class="hubflow">おすすめの順番は「安心チェック → 対話シート → 成長マップ」です。時間がないときは、どれかひとつだけでも大丈夫です。</p>' +
+      '<p class="note">お名前や会員番号の入力はありません。答えはこの端末に保存されません。</p>' +
+      staffBox('<p>最初に「診断ではなく、お話のきっかけです」と伝える。会員様の横に座り、画面を真ん中に置いて一緒に見る。</p>' +
+        '<p>ご家族が変わるときは、下の「新しいご家族で始める」で、入力内容をすべて消してから始める。</p>') +
+      (S.check || S.stage >= 0 || S.q.some(function (x) { return x >= 0; }) ? '<div class="qnav no-print"><span></span><button class="ghost" data-act="reset">新しいご家族で始める(入力内容を消す)</button></div>' : '') +
+      '</section>';
+  }
+
+  /* ---------- 安心チェック ---------- */
+  function cs() {
+    return '<section class="start">' +
+      '<h1>AIくらし安心チェック</h1>' +
+      '<p class="lead">診断ではなく、お話のきっかけです。いまのお気持ちに近いものを、ひとつずつ選んでください。正解はありません。</p>' +
+      '<ul class="facts"><li>約5分</li><li>全7問</li><li>ひとつずつ選ぶだけ</li></ul>' +
+      '<button class="btn" data-act="cstart">はじめる</button>' +
+      staffBox('<p>「点数をつけるものではなく、いまのご様子を一緒に確かめるものです」と伝える。</p><p>会員様が迷ったら、「いちばん近いもので大丈夫です」と声をかける。</p>') +
+      '</section>';
+  }
+
+  function cq() {
+    var q = QUESTIONS[S.ci];
+    var prog = QUESTIONS.map(function (_, i) { return '<i class="' + (i <= S.ci ? 'on' : '') + '"></i>'; }).join('');
+    var opts = q.options.map(function (o, i) {
+      return '<button class="opt' + (S.ca[S.ci] === i ? ' sel' : '') + '" data-act="ca" data-i="' + i + '"><span class="dot"></span><span class="txt">' + o.t + '</span></button>';
+    }).join('');
+    var tip = S.ci === 0
+      ? '<p>選んだ内容は、印刷紙の「きょう、お話ししたいこと」になる。会員様の言葉で言い直して確認する。</p><p>実際に多い声: 「宿題をAIにやらせていないか心配」「調べてみて、としか言えなくて情けない」など、隣の悩みも一緒に聞く。</p>'
+      : '<p>答えを急がせない。迷っている様子なら、「どれも間違いではありません」と伝える。</p>';
+    return '<section><div class="prog" aria-hidden="true">' + prog + '</div>' +
+      '<div class="qnum">' + (S.ci + 1) + ' / ' + QUESTIONS.length + '</div>' +
+      '<h2 class="q">' + q.text + '</h2>' +
+      '<p class="qsub">' + (q.sub || 'いまのお気持ちに近いものを、ひとつ選んでください。') + '</p>' +
+      '<div class="opts">' + opts + '</div>' +
+      '<div class="qnav"><button class="ghost" data-act="cback">もどる</button><span></span></div>' +
+      staffBox(tip) + '</section>';
+  }
+
+  function compute() {
+    var sums = [[], [], [], []];
+    QUESTIONS.forEach(function (q, i) { if (q.f !== undefined) sums[q.f].push(q.options[S.ca[i]].s); });
+    var avg = sums.map(function (a) { return a.reduce(function (x, y) { return x + y; }, 0) / a.length; });
+    var overall = avg.reduce(function (x, y) { return x + y; }, 0) / 4;
+    var stage = overall < 0.8 ? 0 : overall < 1.6 ? 1 : overall < 2.4 ? 2 : 3;
+    var ranked = [0, 1, 2, 3].sort(function (a, b) { return (avg[a] - avg[b]) || (a - b); });
+    return { avg: avg, stage: stage, ranked: ranked, concern: S.ca[0] };
+  }
+  function tier(a) { return a < 1 ? 0 : a < 2 ? 1 : 2; }
+
+  function cr() {
+    var r = S.check;
+    var weakest = r.ranked[0], second = r.ranked[1], strongest = r.ranked[3];
+    var spread = r.avg[strongest] !== r.avg[weakest];
+    var c = CONCERNS[r.concern];
+    var stepper = STAGES.map(function (s, i) {
+      return '<div class="step' + (i === r.stage ? ' cur' : '') + '">' + (i === r.stage ? '<span class="here">いまここ</span>' : '') + '<b>' + s.name + '</b><small>' + s.csub + '</small></div>';
+    }).join('');
+    var forces = FORCES.map(function (f, k) {
+      var lvl = Math.round(r.avg[k]);
+      var meter = [0, 1, 2, 3].map(function (n) { return '<i class="' + (n <= lvl ? 'on' : '') + '"></i>'; }).join('');
+      var tag = '';
+      if (spread && k === strongest) tag = '<span class="tag">すでにお持ちの力</span>';
+      else if (spread && k === weakest) tag = '<span class="tag warm">次に育てたい力</span>';
+      return '<div class="force"><h3><span>' + f.name + '</span>' + tag + '</h3><p class="fd">' + f.cdesc + '</p><div class="meter">' + meter + '</div><div class="flabel">' + STAGES[lvl].name + '</div></div>';
+    }).join('');
+    var nexts = [weakest, second].map(function (k) {
+      return '<li><b>' + FORCES[k].name + '</b>' + FORCES[k].csteps[tier(r.avg[k])] + '</li>';
+    }).join('');
+    var st = STAGES[r.stage], fw = FORCES[weakest];
+    var panel = staffPanel('スタッフの方へ(会話のヒント)',
+      '<h4>会話の進め方</h4>' + ol([
+        '最初に「診断ではなく、お話のきっかけです」と伝え、会員様の横に座って一緒に画面を見る。',
+        '「すでにお持ちの力」から先に言葉にして伝える。よいところを先に見つける。',
+        '「きょう、お話ししたいこと」を、会員様の言葉で言い直して確認する。',
+        '「次に育てたい力」の問いかけを1つだけ投げ、答えをさえぎらずに最後まで聞く。',
+        '「次の一歩」は、その場で会員様に1つ選んでもらう。決めるのは会員様。',
+        'そのまま下の「対話シートへ」「成長マップへ」に進み、結果をつなげる。印刷紙は、会員様と一緒に会員番号とお名前を書いてお渡しする。']) +
+      '<h4>いまの立ち位置(' + st.name + ')への声かけ</h4><p>' + st.say + '</p><p class="tipline">ポイント: ' + st.tip + '</p>' +
+      (spread ? '<h4>先に伝えたい、すでにお持ちの力</h4><p>「' + FORCES[strongest].name + '」から伝える。(' + FORCES[strongest].cdesc + ')</p>' : '') +
+      '<h4>きょう、お話ししたいこと(' + c.t + ')</h4>' +
+      (c.also.length ? '<p><b>同じ悩みでよく聞く声:</b> ' + c.also.map(function (x) { return '「' + x + '」'; }).join(' / ') + '</p>' : '') +
+      '<p><b>まず聞く:</b> ' + c.ask + '</p><p><b>深掘りする:</b> ' + c.follow + '</p><p><b>受け止める一言:</b> ' + c.recv + '</p>' +
+      '<h4>次に育てたい力(' + fw.name + ')の深掘り</h4>' +
+      '<p><b>問いかけ:</b> ' + fw.cask + '</p><p><b>続けて聞く:</b> ' + fw.sfollow + '</p><p><b>次の一歩の切り口:</b> ' + fw.sangle + '</p>' +
+      '<h4>避けたい言い方・進め方</h4>' + li([
+        '専門用語(プロンプト、アルゴリズムなど)を使う。',
+        '正解を先に言う。まず聞いて、会員様の言葉で考えてもらう。',
+        '不安をあおる言い方(「このままだと危ないです」など)。',
+        '結果を点数や優劣のように扱う。他のご家庭との比較もしない。']) +
+      '<h4>印刷紙をお渡しするとき</h4>' + li([
+        '「この用紙は、ご家族とのお話の材料としてお持ち帰りください。」',
+        '会員番号とお名前は、会員様の前で一緒に記入する。',
+        '「また続きを聞かせてください」と伝え、次回の来店で話す材料をひとつ決めておく。']));
+    return '<section class="res">' + head() +
+      '<h1>きょうの安心マップ</h1><p class="date">' + today() + ' ・ AIくらし安心チェック</p>' +
+      '<div class="block"><h2>いまの立ち位置</h2><div class="stepper">' + stepper + '</div><p class="stagemsg">' + st.msg + '</p></div>' +
+      '<div class="block"><h2>4つの力</h2><div class="forces">' + forces + '</div></div>' +
+      '<div class="block"><h2>次の一歩</h2><ul class="nexts">' + nexts + '</ul></div>' +
+      '<div class="block"><h2>きょう、お話ししたいこと</h2><span class="concern">' + c.t + '</span></div>' +
+      '<div class="print-foot">この用紙は、ご家族とのお話のきっかけとしてお持ち帰りください。</div>' +
+      panel +
+      actions('again0', [{ act: 'go', to: 't1i', label: '対話シートへ(つづけて)' }, { act: 'go', to: 't2p', label: '成長マップへ(つづけて)' }]) +
+      '</section>';
+  }
+
+  /* ---------- ツール1 ---------- */
+  function t1i() {
+    var note = S.check
+      ? '<p class="autonote">安心チェックの結果をもとに、「次に育てたい力」だった<b>' + FORCES[S.check.weakest].name + '</b>から始めます。</p>'
+      : '';
+    return '<section class="start">' +
+      '<h1>AIは、答えを出す機械ではなく、考えを深めるための「共通の言葉」です。</h1>' +
+      '<p class="lead">4つのテーマについて、親子で順番に話してみましょう。話すうちに、わが家のルールが見えてきます。</p>' +
+      '<ul class="facts"><li>約15分</li><li>4つのテーマ</li><li>正解はありません</li></ul>' + note +
+      '<button class="btn" data-act="go" data-to="t1s" style="margin-top:1em">はじめる</button>' +
+      '<p class="note">お子様から先に話してもらうと、会話が進みやすくなります。</p>' +
+      staffBox('<p>お子様(中学生くらい)が同席していれば、お子様から先に話してもらう。同席していないときは、親御様に「お子様ならどう答えそうか」を想像してもらう。</p>' +
+        '<p>スタッフは答えを評価せず、聞き役に回る。「正解を決めるシート」ではなく「考えを出し合うシート」と伝える。</p>') +
+      '</section>';
+  }
+
+  function t1s() {
+    var fi = S.order[S.step], f = FORCES[fi];
+    var prog = FORCES.map(function (_, n) { return '<i class="' + (n <= S.step ? 'on' : '') + '"></i>'; }).join('');
+    var qs = f.qs.map(function (q, n) {
+      return '<button class="opt' + (S.q[fi] === n ? ' sel' : '') + '" data-act="q" data-i="' + n + '"><span class="dot"></span><span class="txt"><span class="who">' + q.w + '</span><br>' + q.t + '</span></button>';
+    }).join('');
+    var full = S.r[fi].length >= 2;
+    var rules = f.rules.map(function (t, n) {
+      var on = S.r[fi].indexOf(n) >= 0;
+      return '<button class="opt multi' + (on ? ' sel' : '') + '" data-act="r" data-i="' + n + '"' + (full && !on ? ' disabled' : '') + '><span class="dot"></span><span class="txt">' + t + '</span></button>';
+    }).join('');
+    var tip = '<p><b>話を広げる一言:</b> ' + f.ask + '</p>' +
+      '<p>' + (S.check && S.check.weakest === fi ? 'チェックで「次に育てたい力」だったテーマ。時間が足りなければ、このテーマだけでも十分。' : '選べないときは、「どれがいちばん近い?」と聞いてみる。用紙の空欄に、家族の言葉で書いてもらってもよい。') + '</p>';
+    return '<section>' +
+      '<div class="prog" aria-hidden="true">' + prog + '</div>' +
+      '<div class="qnum">テーマ ' + (S.step + 1) + ' / 4</div>' +
+      '<h2 class="q">' + f.name + '</h2><p class="qsub">' + f.desc + '</p>' +
+      '<div class="sect"><h3>まず、話してみよう</h3><p class="hint">気になる質問をひとつ選んで、親子で順番に話してみましょう。</p><div class="opts">' + qs + '</div></div>' +
+      '<div class="sect"><h3>わが家のルールを選ぼう</h3><p class="hint">話してみて「やってみたい」と思ったものを、2つまで選べます。選ばなくてもかまいません。</p><div class="opts">' + rules + '</div></div>' +
+      '<div class="qnav"><button class="ghost" data-act="t1back">もどる</button>' +
+      '<button class="btn" data-act="t1next">' + (S.step < 3 ? 'つぎのテーマへ' : '「わが家のAIルール」を見る') + '</button></div>' +
+      staffBox(tip) + '</section>';
+  }
+
+  function t1r() {
+    var blocks = FORCES.map(function (f, n) {
+      var q = S.q[n] >= 0 ? f.qs[S.q[n]].t : '';
+      var rs = S.r[n].map(function (k) { return '<li><span class="cb on"></span><span>' + f.rules[k] + '</span></li>'; }).join('');
+      rs += '<li class="blank"><span class="cb"></span><span class="blankline"></span></li>';
+      return '<section class="sblock"><h3>' + f.name + '</h3><p class="sd">' + f.desc + '</p>' +
+        '<p class="sq"><b>話したこと:</b> ' + q + '</p><div class="lines"><i></i><i></i></div><ul class="srules">' + rs + '</ul></section>';
+    }).join('');
+    var panel = staffPanel('スタッフの方へ(進め方のヒント)',
+      '<h4>進め方</h4>' + ol([
+        '席は向かい合わせではなく、親子の隣に座る。画面は親子の真ん中に置く。',
+        '「話してみよう」は、お子様から先に答えてもらう。親御様は最後まで聞く。',
+        '「正解を決めるシート」ではなく、「考えを出し合うシート」と伝える。',
+        'AIが使える環境なら、質問をその場でAIに聞いてみて、答えを一緒に確かめる。',
+        'ルールは「禁止」より、「こう使おう」の形にする。選べないときは、用紙の空欄に家族の言葉で書いてもらう。']) +
+      '<h4>テーマごとの、話を広げる一言</h4>' + li(FORCES.map(function (f) { return f.name + ': ' + f.ask; })) +
+      '<h4>避けたい言い方・進め方</h4>' + li([
+        '大人が結論を先に言う。', '「やめなさい」「禁止」と決めつける。', 'お子様の答えを評価したり、訂正したりする。',
+        '用紙に書かれた内容を、スタッフが見せてもらおうとする。ご家庭のなかのことにとどめる。']) +
+      '<h4>用紙をお渡しするとき</h4>' + li([
+        '「この用紙は、冷蔵庫など見えるところに貼ってください。」',
+        '会員番号とお名前は、会員様の前で一緒に記入する。',
+        '「見直す日」を一緒に決め、その頃にまたお話しする約束をする。']));
+    return '<section class="res">' + head() +
+      '<h1>わが家のAIルール</h1><p class="date">' + today() + ' ・ AI学習・対話シート</p>' + concernLine() +
+      '<div class="block"><div class="sheetgrid">' + blocks + '</div></div>' +
+      '<div class="block"><section class="sblock"><h3>わが家だけのルール</h3><p class="sd">話し合いのなかで生まれた、自分たちの言葉で書きましょう。</p>' +
+        '<ul class="srules"><li class="blank"><span class="cb"></span><span class="blankline"></span></li><li class="blank"><span class="cb"></span><span class="blankline"></span></li><li class="blank"><span class="cb"></span><span class="blankline"></span></li></ul></section></div>' +
+      '<div class="sfoot"><span>決めた日<i></i></span><span>見直す日<i></i></span></div>' +
+      '<div class="print-foot">この用紙は、ご家庭のお話のきっかけとしてお持ち帰りください。見やすい場所に貼って、ときどき見直してみてください。</div>' +
+      panel + actions('again1', [{ act: 'go', to: 't2p', label: '成長マップへ(つづけて)' }]) + '</section>';
+  }
+
+  /* ---------- ツール2 ---------- */
+  function t2p() {
+    var cards = STAGES.map(function (s, n) {
+      return '<button class="opt' + (S.stage === n ? ' sel' : '') + '" data-act="stage" data-i="' + n + '"><span class="dot"></span><span class="txt"><span class="nm">' + s.name + '(' + s.sub + ')</span><span class="ds">' + s.pick + '</span></span></button>';
+    }).join('');
+    var auto = S.auto && S.stage >= 0
+      ? '<p class="autonote">安心チェックの結果から、「<b>' + STAGES[S.stage].name + '</b>」を選んでいます。しっくりこないときは、選び直してください。</p>' +
+        '<div class="qnav"><span></span><button class="btn" data-act="t2go">この段階で進む</button></div>'
+      : '';
+    var tip = S.auto
+      ? '<p>チェック結果はあくまで目安。会員様が「少しちがう」と言えば、その言葉を優先して選び直してもらう。</p>'
+      : '<p>段階は診断ではなく、いまの位置を一緒に確かめるためのもの。会員様が選んだものをそのまま受け止める。</p>';
+    return '<section><div class="prog" aria-hidden="true"><i class="on"></i><i></i></div>' +
+      '<div class="qnum">ステップ 1 / 2</div>' +
+      '<h2 class="q">いまのご家族は、どの段階に近いですか?</h2>' +
+      '<p class="qsub">ご家族で話して、いちばん近いものを選んでください。あとで変わっても大丈夫です。</p>' +
+      '<div class="opts">' + cards + '</div>' + auto + staffBox(tip) + '</section>';
+  }
+
+  function t2s() {
+    var st = STAGES[S.stage];
+    var full = S.pick.length >= 2;
+    var cards = st.steps.map(function (t, n) {
+      var on = S.pick.indexOf(n) >= 0;
+      return '<button class="opt multi' + (on ? ' sel' : '') + '" data-act="pick" data-i="' + n + '"' + (full && !on ? ' disabled' : '') + '><span class="dot"></span><span class="txt">' + t + '</span></button>';
+    }).join('');
+    return '<section><div class="prog" aria-hidden="true"><i class="on"></i><i class="on"></i></div>' +
+      '<div class="qnum">ステップ 2 / 2</div>' +
+      '<h2 class="q">次の小さな一歩を、選びましょう</h2>' +
+      '<p class="qsub">いまは「' + st.name + '」の段階です。できそうなことを、2つまで選べます。</p>' +
+      (S.check ? '<p class="qsub">安心チェックで「次に育てたい力」だった<b>' + FORCES[S.check.weakest].name + '</b>に近いものがあれば、そこから選ぶのもおすすめです。</p>' : '') +
+      '<div class="opts">' + cards + '</div>' +
+      '<div class="qnav"><button class="ghost" data-act="t2back">もどる</button><button class="btn" data-act="t2next">成長マップを見る</button></div>' +
+      staffBox('<p>こちらから選ばない。決めるのは会員様。迷うときは「いちばん簡単にできそうなのは?」と聞く。</p><p><b>声かけ:</b> ' + st.say + '</p><p class="tipline">' + st.tip + '</p>') +
+      '</section>';
+  }
+
+  function t2r() {
+    var st = STAGES[S.stage];
+    var stairs = STAGES.map(function (s, n) {
+      var cls = n < S.stage ? ' past' : n === S.stage ? ' cur' : '';
+      return '<div class="stair' + cls + '">' +
+        (n === 3 ? '<svg class="flag" viewBox="0 0 20 26" aria-hidden="true"><path d="M3 2v22" stroke="var(--ink-soft)" stroke-width="2" fill="none"/><path d="M3 3h13l-3 4.5L16 12H3z" fill="var(--warm)"/></svg>' : '') +
+        (n === S.stage ? '<span class="here">いまここ</span>' : '') +
+        '<b>' + s.name + '</b><small>' + s.sub + '</small><span class="reach">到達した日<i></i></span></div>';
+    }).join('');
+    var picks = S.pick.map(function (k) { return '<li><span class="cb on"></span><span>' + st.steps[k] + '</span></li>'; }).join('');
+    picks += '<li class="blank"><span class="cb"></span><span class="blankline"></span></li>';
+    var panel = staffPanel('スタッフの方へ(伴走のヒント)',
+      '<h4>いまの段階(' + st.name + ')への声かけ</h4><p>' + st.say + '</p><p class="tipline">ポイント: ' + st.tip + '</p>' +
+      '<h4>進め方</h4>' + ol([
+        '段階は診断ではなく、いまの位置を一緒に確かめるためのもの。会員様が選んだ段階をそのまま受け止める。',
+        '「次の一歩」は、会員様が選んだものだけを扱う。こちらから増やさない。',
+        '階段を上った日は、会員様の前で日付を書き入れ、できるようになったことを言葉にして伝える。',
+        '「次にお話しする日」を、その場で一緒に決める。']) +
+      '<h4>避けたい言い方・進め方</h4>' + li([
+        '他のご家庭や、他の段階の方と比べる。', '段階を「遅れ」や「評価」のように扱う。',
+        '一度に複数の一歩を決めようとする。', '専門用語を使って説明する。']));
+    return '<section class="res">' + head() +
+      '<h1>わが家の成長マップ</h1><p class="date">' + today() + ' ・ 伴走ステップ・成長マップ</p>' + concernLine() +
+      '<div class="stairs">' + stairs + '</div>' +
+      '<div class="block"><h2>いまのようす</h2><p class="para">' + st.now + '</p></div>' +
+      '<div class="block"><h2>次の段階へのサイン</h2><p class="para">' + st.sign + '</p></div>' +
+      '<div class="block"><h2>選んだ小さな一歩</h2><ul class="srules">' + picks + '</ul></div>' +
+      '<div class="sfoot"><span>次にお話しする日<i></i></span></div>' +
+      '<div class="print-foot">階段を上った日は、上の欄に日付を書き入れましょう。次にお会いするときに、一緒に見返します。</div>' +
+      panel + actions('again2', [{ act: 'go', to: 't1i', label: '対話シートへ' }]) + '</section>';
+  }
+
+  /* ---------- 画面切り替え ---------- */
+  var SCREENS = { hub: hub, cs: cs, cq: cq, cr: cr, t1i: t1i, t1s: t1s, t1r: t1r, t2p: t2p, t2s: t2s, t2r: t2r };
+  var RESULTS = { cr: 1, t1r: 1, t2r: 1 };
+
+  function render(keep) {
+    var y = keep ? window.scrollY : 0;
+    if (!RESULTS[S.screen]) document.body.classList.remove('pp');
+    $('#main').innerHTML = SCREENS[S.screen]();
+    $('#homeBtn').hidden = (S.screen === 'hub');
+    var sb = $('#staffBtn');
+    sb.textContent = 'スタッフ用: ' + (S.staff ? 'オン' : 'オフ');
+    sb.className = 'ghost' + (S.staff ? ' on' : '');
+    sb.setAttribute('aria-pressed', S.staff ? 'true' : 'false');
+    window.scrollTo(0, y);
+  }
+
+  function toggle(arr, i) {
+    var k = arr.indexOf(i);
+    if (k >= 0) arr.splice(k, 1); else if (arr.length < 2) arr.push(i);
+  }
+  function setOrder() {
+    S.order = [0, 1, 2, 3];
+    if (S.check) {
+      var w = S.check.weakest;
+      S.order = [w].concat([0, 1, 2, 3].filter(function (k) { return k !== w; }));
+    }
+  }
+  function fullReset() {
+    S.check = null; S.ci = 0; S.ca = []; S.order = [0, 1, 2, 3];
+    S.step = 0; S.q = [-1, -1, -1, -1]; S.r = [[], [], [], []]; S.stage = -1; S.auto = false; S.pick = [];
+    S.screen = 'hub';
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button');
+    if (!t || t.disabled) return;
+    if (t.id === 'homeBtn') { S.screen = 'hub'; render(); return; }
+    if (t.id === 'staffBtn') { S.staff = !S.staff; render(true); return; }
+    if (t.id === 'printBtn') { try { window.print(); } catch (err) {} return; }
+    if (t.id === 'ppBtn') { document.body.classList.add('pp'); window.scrollTo(0, 0); return; }
+    if (t.id === 'ppExit') { document.body.classList.remove('pp'); return; }
+    var a = t.getAttribute('data-act'), i = +t.getAttribute('data-i');
+    if (!a) return;
+    var fi = S.order[S.step];
+    if (a === 'go') {
+      var to = t.getAttribute('data-to');
+      S.screen = to;
+      if (to === 't1i') { setOrder(); S.step = 0; }
+      if (to === 't1s') S.step = 0;
+      if (to === 't2p' && S.check && S.stage < 0) { S.stage = S.check.stage; S.auto = true; S.pick = []; }
+      render();
+    }
+    else if (a === 'cstart') { S.ci = 0; S.ca = []; S.check = null; S.screen = 'cq'; render(); }
+    else if (a === 'ca') {
+      var ci = S.ci; S.ca[ci] = i; render(true);
+      setTimeout(function () {
+        if (S.screen !== 'cq' || S.ci !== ci) return;
+        if (ci < QUESTIONS.length - 1) { S.ci++; render(); }
+        else {
+          var r = compute();
+          S.check = { avg: r.avg, stage: r.stage, ranked: r.ranked, weakest: r.ranked[0], concern: r.concern };
+          S.stage = -1; S.auto = false; S.pick = [];
+          S.screen = 'cr'; render();
+        }
+      }, reduce ? 0 : 260);
+    }
+    else if (a === 'cback') { if (S.ci > 0) { S.ci--; S.screen = 'cq'; } else { S.screen = 'cs'; } render(); }
+    else if (a === 'q') { S.q[fi] = i; render(true); }
+    else if (a === 'r') { toggle(S.r[fi], i); render(true); }
+    else if (a === 't1next') { if (S.step < 3) { S.step++; S.screen = 't1s'; } else { S.screen = 't1r'; } render(); }
+    else if (a === 't1back') { if (S.step > 0) { S.step--; S.screen = 't1s'; } else { S.screen = 't1i'; } render(); }
+    else if (a === 'stage') {
+      S.stage = i; S.pick = []; S.auto = false; render(true);
+      setTimeout(function () { if (S.screen === 't2p') { S.screen = 't2s'; render(); } }, reduce ? 0 : 260);
+    }
+    else if (a === 't2go') { S.pick = []; S.screen = 't2s'; render(); }
+    else if (a === 'pick') { toggle(S.pick, i); render(true); }
+    else if (a === 't2back') { S.screen = 't2p'; render(); }
+    else if (a === 't2next') { S.screen = 't2r'; render(); }
+    else if (a === 'again0') { S.check = null; S.ci = 0; S.ca = []; S.stage = -1; S.auto = false; S.pick = []; S.screen = 'cs'; render(); }
+    else if (a === 'again1') { S.q = [-1, -1, -1, -1]; S.r = [[], [], [], []]; S.step = 0; setOrder(); S.screen = 't1i'; render(); }
+    else if (a === 'again2') { S.stage = -1; S.auto = false; S.pick = []; S.screen = 't2p'; render(); }
+    else if (a === 'reset') { fullReset(); render(); }
+  });
+
+  /* 印刷用ルール: 実際の印刷と画面上の印刷イメージで同じ内容を使う。§ は適用範囲(body / body.pp)に置き換わる。 */
+  var PR = [
+    '§{--paper:#fff;--paper-2:#f3ecdc;--card:#fff;--ink:#222;--ink-soft:#555;--line:#bdb5a3;--accent:#4a6a3d;--accent-ink:#fff;--accent-soft:#e6eddb;--warm:#9a5522;background-image:none;background-color:#fff;color:#222;-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+    '§ .no-print{display:none!important}',
+    '§ .sign-head{display:grid!important}',
+    '§ .print-foot{display:block!important}',
+    '§ #app{--fs:10pt;line-height:1.5}',
+    '§ .res h1{font-size:1.5em}',
+    '§ .block{margin-top:.9em}',
+    '§ .forces{grid-template-columns:1fr 1fr}',
+    '§ .stepper{grid-template-columns:repeat(4,1fr)}',
+    '§ .sheetgrid{grid-template-columns:1fr 1fr}',
+    '§ .lines i{height:7mm}',
+    '§ .stairs .stair:nth-child(1){min-height:6.5em}',
+    '§ .stairs .stair:nth-child(2){min-height:8.5em}',
+    '§ .stairs .stair:nth-child(3){min-height:10.5em}',
+    '§ .stairs .stair:nth-child(4){min-height:12.5em}',
+    '§ .force,§ .step,§ .nexts li,§ .sblock,§ .stair,§ .block{break-inside:avoid}'
+  ].join('\n');
+  function addStyle(css) { var s = document.createElement('style'); s.textContent = css; document.head.appendChild(s); }
+  addStyle('@media print{' + PR.split('§').join('body') + '}');
+  addStyle(PR.split('§').join('body.pp'));
+
+  render();
+})();
+</script>
+
+</body></html>
