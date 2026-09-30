@@ -215,7 +215,7 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
 .msgmock { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 1em 1.2em; margin: 0 0 1.2em; max-width: 34em; }
 .msgmock .mk { display: inline-block; font-size: .72em; font-weight: 700; padding: .05em .8em; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
 .msgmock .mf { font-size: .82em; color: var(--ink-soft); margin: .3em 0 .4em; }
-.msgmock .mb { margin: 0; line-height: 1.7; word-break: break-all; }
+.msgmock .mb { margin: 0; line-height: 1.7; word-break: break-all; white-space: pre-line; }
 .judge { display: grid; grid-template-columns: 1fr 1fr; gap: .9em; max-width: 34em; }
 .opt.center { justify-content: center; text-align: center; font-weight: 700; align-items: center; }
 .verdict { margin-top: 1.2em; padding: .9em 1.1em; border-radius: 14px; border: 2px solid var(--accent); background: var(--accent-soft); max-width: 40em; }
@@ -433,28 +433,53 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
   ];
 
   /* ---------- データ: 見分け練習(会社名・URLはすべて架空) ---------- */
+  /* 実際に報告・注意喚起された事例の文面をもとに再構成(URL・電話番号は伏せ字/架空)。src は参考にした公開情報の出どころ。 */
   var SCAMS = [
-    { kind: 'SMS', from: '差出人: 見おぼえのない番号', scam: true,
-      body: '【お荷物のお届け】不在のため持ち帰りました。再配達のお申し込みは下記から。http://saihaitatsu-moushikomi.example.top',
-      clues: ['どこの配達会社か書いていない', 'リンクの末尾が「.top」など、見なれない形', '「今すぐ」と、行動をせかしている'],
-      act: 'リンクは開かない。荷物に心当たりがあれば、いつも使っている配送会社のアプリや、控えの番号から自分で確かめる。' },
-    { kind: 'メール', from: '差出人: 「重要なお知らせ」', scam: true,
-      body: 'お客様の口座が一時的に利用制限されました。24時間以内に本人確認をしないと、口座が凍結されます。→ 本人確認はこちら',
-      clues: ['「24時間以内」と期限をつけてあわてさせる', '名前ではなく「お客様」と呼びかけている', 'リンクから、暗証番号などを入力させようとする'],
-      act: 'メールのリンクは使わない。アプリ、または通帳・カードの裏に書かれた電話番号から、自分で問い合わせる。' },
-    { kind: '学校アプリ', from: '差出人: いつも使っている学校連絡アプリの中', scam: false,
+    { kind: 'SMS', from: '差出人: 見おぼえのない番号', scam: true, src: 'フィッシング対策協議会が注意喚起した、宅配業者をかたるSMS',
+      body: 'お荷物のお届けにあがりましたが不在の為持ち帰りました。ご確認ください。https://●●●●.example',
+      clues: ['どこの配達会社かも、何のお荷物かも書いていない', '短いリンクだけで、開かせようとしている', '荷物に心当たりがなくても「気になって」開かせる作り'],
+      act: 'リンクは開かない。荷物に心当たりがあれば、配送会社の公式アプリや、荷物の控えにある番号から自分で確かめる。' },
+    { kind: 'メール', from: '差出人: Amazonを名のるメール', scam: true, src: 'フィッシング対策協議会が注意喚起した、Amazonをかたるメール',
+      body: '件名: 必要なアクション:あなたのAmazonアカウントはセキュリティ上の理由でロックされています\n本文: このアクティブは疑わしいと思われるため、情報を保護するためにアカウントを無効にします。→ アカウントを復旧する',
+      clues: ['「ロック」「無効にします」と、不安にさせている', '「このアクティブは」など、少し不自然な日本語', 'リンク先でIDやパスワード、さらにカード番号まで入力させようとする'],
+      act: 'リンクは開かない。ブックマークやアプリから自分でAmazonにログインして、通知が届いていないか確かめる。' },
+    { kind: 'メール', from: '差出人: ETC利用照会サービスを名のるメール', scam: true, src: 'ETC利用照会サービスをかたるフィッシング(フィッシング対策協議会などが繰り返し注意喚起)',
+      body: '件名: 【重要なお知らせ】解約予告のお知らせ(ETC利用照会サービス)\n本文: 平素よりETC利用照会サービスをご利用いただき、誠にありがとうございます。このメールは、ETC利用照会サービス(登録型)にご登録されていて、420日間ログインのない方にお送りしています。→ ログインはこちら',
+      clues: ['「解約予告」など、放っておけないと思わせる件名', 'ていねいな文面でも、リンクでIDとパスワードを入力させようとする', 'サービス側は、メールのリンクから個人情報やカード情報の入力を求めないと案内している'],
+      act: 'リンクは開かない。使っているサービスなら、公式サイトを検索して自分でログインして確かめる。使っていないなら、無視する。' },
+    { kind: 'SMS', from: '差出人: 見おぼえのない番号', scam: true, src: '消費生活センターなどが注意喚起している、未納料金の架空請求SMS(事例をもとに再構成)',
+      body: '【重要】有料サイトの未納料金が発生しています。本日中にご連絡がない場合、法的手続きに移行します。連絡先: 03-XXXX-XXXX',
+      clues: ['身におぼえのない請求', '「本日中」「法的手続き」と、あわてさせている', 'リンクではなく電話をかけさせて、その場でお金を払わせようとする'],
+      act: '連絡しない。支払わない。不安なときは、消費生活センター(188)に相談する。' },
+    { kind: 'SMS', from: '差出人: 見おぼえのない番号', scam: true, src: '税金・公共料金の支払いを装う手口(フィッシング対策協議会の報告動向をもとに再構成)',
+      body: '【重要】公共料金のお支払いの確認ができておりません。本日中に下記からお手続きください。https://●●●●.example',
+      clues: ['どこの会社・役所か、名前が書いていない', '「本日中」と、あわてさせている', 'リンクで支払い方法を入力させようとする'],
+      act: 'リンクは開かない。心当たりがあれば、届いている請求書や、契約している会社の公式ページ・アプリから確かめる。' },
+    { kind: 'LINE', from: '差出人: 友だち登録している同級生の名前', scam: true, src: '警察などが注意喚起している、LINEアカウント乗っ取りによるプリペイドカード詐欺',
+      body: 'いま、コンビニにいる? ちょっとお願いがあるんだけど…。プリペイドカードを買ってきてくれない? 番号を写真で送ってくれたら大丈夫だから。あとで返すね。',
+      clues: ['電話や会って話すのではなく、文字だけでたのんでくる', 'プリペイドカードの番号を、写真で送らせようとする', 'いつもの話し方と、どこか違う'],
+      act: '送らない。本人に、いつもの電話番号や、直接会って確かめる。番号を教えると、お金を取り戻すのは難しくなる。' },
+    { kind: 'SNS広告', from: '広告(FacebookやInstagramのタイムラインに表示)', scam: true, src: '警察庁などが注意喚起している、著名人の画像を無断で使ったSNS型投資詐欺',
+      body: '【確実に儲かる投資方法を教えます】有名な投資家が無料で教える資産形成セミナー。今すぐ下の「LINEグループに参加」を押してください。',
+      clues: ['有名人の写真が使われているが、本人の広告とは限らない', '「確実に儲かる」と言い切っている(投資に確実はない)', 'LINEのグループに誘導して、お金を振り込ませようとする'],
+      act: '参加しない。広告に有名人の名前があっても、本人に確かめられないものは信じない。家族に見せて相談する。' },
+    { kind: 'DM', from: '差出人: SNSで知り合って、会ったことのない人', scam: true, src: '警察庁などが注意喚起している、SNS型ロマンス詐欺',
+      body: 'あなたに会いに行きたいけど、お金がなくて…。航空券代を送ってくれない? 病気の治療のために、お金が必要になったんだ。',
+      clues: ['直接会ったことがないのに、親しく話しかけてくる', 'お金の話が、だんだん出てくる(航空券・治療費など)', '振り込み先や方法を、細かく指定してくる'],
+      act: '送らない。会ったことのない人には、お金を出さない。家族や、警察の相談窓口(#9110)に話す。' },
+    { kind: 'SNS投稿', from: '投稿者: 知らない人のアカウント(チケット譲渡)', scam: true, src: '警視庁が逮捕した、チケット転売を装って電子マネーをだまし取った事件などをもとに再構成',
+      body: 'ライブのチケットが余ったので、定価で譲ります。先に電子マネーで払ってもらえたら、すぐ発送します。DMください。',
+      clues: ['個人どうしで、先にお金だけ払わせようとしている', '電子マネーやギフトカードでの支払いを指定している', '発送や本人確認を、確かめる方法がない'],
+      act: '払わない。チケットは、公式のリセールサービスなど、手続きが守られている方法で買う。' },
+    { kind: 'SMS', from: '差出人: 自分が今ログインしようとしたサービス', scam: false, src: 'ふつうのログイン確認コード(二段階認証)の通知',
+      body: '認証コード: 123456\nこのコードは、他の人には教えないでください。',
+      clues: ['自分が操作した直後に届いている', 'リンクがなく、コードだけが書かれている', '「他の人に教えないで」と注意している'],
+      act: '大丈夫そうです。ただし、自分が操作していないのにコードが届いたときや、他の人に「コードを教えて」と言われたときは、あやしい。' },
+    { kind: '学校アプリ', from: '差出人: いつも使っている学校連絡アプリの中', scam: false, src: '学校の連絡アプリの、ふだんのお知らせの例',
       body: '【お知らせ】校外学習の持ち物を更新しました。アプリの「配布物」でご確認ください。',
       clues: ['いつも使っているアプリの中に届いている', 'リンクや個人情報の入力を求めていない', '急がせる言葉がない'],
       act: '大丈夫そうです。それでも、メッセージ内のリンクではなく、自分でアプリを開いて確認する習慣をつけておくと安心です。' },
-    { kind: 'SNS広告', from: '広告(SNSのタイムラインに表示)', scam: true,
-      body: '【本日限り】人気のスマホが9割引! 在庫あとわずか。今すぐ購入。',
-      clues: ['9割引など、ふつうはあり得ない安さ', '「本日限り」「あとわずか」でせかしている', 'お店の名前や住所が見当たらない'],
-      act: '買わない。ほしいときは、名前を知っているお店の公式サイトで、値段をくらべる。カード番号は入れない。' },
-    { kind: 'LINE', from: '差出人: 「お母さん(新しい番号)」', scam: true,
-      body: 'スマホが壊れて、新しい番号になったよ。いま電話できないから、コンビニでギフトカードを買って、番号を写真で送ってほしい。',
-      clues: ['「電話できない」と、声で確かめさせない', 'ギフトカードの番号を送らせようとしている', '番号が変わった、と急に言ってきた'],
-      act: '送らない。これまで使っていた番号に電話して確かめる。家族だけの「合言葉」を決めておくのもおすすめ。' },
-    { kind: '防災メール', from: '差出人: 自分で登録した、市の防災メール', scam: false,
+    { kind: '防災メール', from: '差出人: 自分で登録した、市の防災メール', scam: false, src: '自治体の防災メール配信サービスの、ふだんのお知らせの例',
       body: '【防災情報】台風の接近にともない、明日は市内の避難所を開設します。くわしくは市の公式ホームページでご確認ください。',
       clues: ['自分で登録した配信サービスから届いている', '個人情報の入力やお金の話がない', '確認先が、公式ホームページになっている'],
       act: '大丈夫そうです。ただし「登録した覚えがない」防災メールは要注意。自分で登録したものかどうかが、見分けの分かれ目です。' }
@@ -503,7 +528,7 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
         '<button class="tool wide" data-act="go" data-to="cs"><span class="tn">はじめに</span><span class="tt">AIくらし安心チェック</span><span class="td">いまの安心と、気になっていることを、6つの質問で確かめます。この結果が、次の2つのツールにつながります。</span>' + done + '</button>' +
         '<button class="tool" data-act="go" data-to="t1i"><span class="tn">ツール1</span><span class="tt">AI学習・対話シート</span><span class="td">親子で話して、わが家のAIルールをつくります。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
         '<button class="tool" data-act="go" data-to="t2p"><span class="tn">ツール2</span><span class="tt">伴走ステップ・成長マップ</span><span class="td">いまの位置を確かめて、次の小さな一歩を決めます。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
-        '<button class="tool" data-act="go" data-to="t3i"><span class="tn">ツール3</span><span class="tt">あやしい連絡 見分け練習</span><span class="td">SMS・メール・広告・LINEを見て、あやしいかどうかを一緒に考えます。</span><span class="tm">約5分 ・ 印刷できます</span></button>' +
+        '<button class="tool" data-act="go" data-to="t3i"><span class="tn">ツール3</span><span class="tt">あやしい連絡 見分け練習</span><span class="td">実際の事例をもとに、SMS・メール・広告・LINEを見て、あやしいかどうかを一緒に考えます。</span><span class="tm">約10分 ・ 印刷できます</span></button>' +
       '</div>' +
       '<p class="hubflow">おすすめの順番は「安心チェック → 対話シート → 成長マップ」です。時間がないときは、どれかひとつだけでも大丈夫です。</p>' +
       '<p class="note">お名前や会員番号の入力はありません。答えはこの端末に保存されません。</p>' +
@@ -755,8 +780,8 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
   function t3i() {
     return '<section class="start">' +
       '<h1>あやしい連絡、見分けられる?</h1>' +
-      '<p class="lead">SMS・メール・広告・LINEを6つ見て、「あやしい」か「大丈夫そう」かを、ご家族で考えてみましょう。すべて練習用に作った例です。</p>' +
-      '<ul class="facts"><li>約5分</li><li>全' + SCAMS.length + '問</li><li>点数はつきません</li></ul>' +
+      '<p class="lead">実際に注意喚起された事例の文面をもとに、SMS・メール・広告・LINEなど' + SCAMS.length + '個を見て、「あやしい」か「大丈夫そう」かを、ご家族で考えてみましょう。URLや電話番号は伏せています。</p>' +
+      '<ul class="facts"><li>約10分</li><li>全' + SCAMS.length + '問</li><li>点数はつきません</li></ul>' +
       '<button class="btn" data-act="t3start">はじめる</button>' +
       '<p class="note">見分けられなくても大丈夫です。「どこを見ればいいか」を一緒に確かめるための練習です。</p>' +
       staffBox('<p>「テストではありません」と最初に伝える。迷ったら、会員様に「どこが気になりますか?」と聞く。</p><p>4つの力の「情報判断力」の練習。「出どころはどこ?」「あわてない」を合言葉にする。</p>') +
@@ -775,7 +800,7 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
       fb = '<div class="verdict' + (ok ? '' : ' warm') + '"><h3>' + (sc.scam ? 'これは、あやしい連絡です' : 'これは、大丈夫そうな連絡です') + '</h3>' +
         '<p>' + (ok ? 'その見立てで合っています。' : 'まぎらわしいですよね。見分けのヒントを一緒に見てみましょう。') + '</p>' +
         '<p><b>' + (sc.scam ? 'あやしいポイント' : '大丈夫そうな理由') + '</b></p>' + li(sc.clues) +
-        '<p><b>どうする?</b> ' + sc.act + '</p></div>' +
+        '<p><b>どうする?</b> ' + sc.act + '</p><p class="sd">参考: ' + sc.src + '</p></div>' +
         '<div class="qnav"><span></span><button class="btn" data-act="t3next">' + (S.si < SCAMS.length - 1 ? 'つぎへ' : '練習シートを見る') + '</button></div>';
     }
     return '<section><div class="prog" aria-hidden="true">' + prog + '</div>' +
@@ -804,7 +829,7 @@ body.pp #app { max-width: 794px; background: #fff; margin: 0 auto; padding: 24px
     return '<section class="res">' + head() +
       '<h1>あやしい連絡 見分けメモ</h1><p class="date">' + today() + ' ・ あやしい連絡 見分け練習</p>' +
       '<div class="block"><h2>今日の3つのポイント</h2><ol class="tips3"><li>あわてない。「急いで」「今日中」は、あやしいサイン。</li><li>リンクは開かず、自分で調べた入口(アプリ・公式サイト・控えの電話番号)から確かめる。</li><li>迷ったら、ひとりで決めず、家族に見せる。</li></ol></div>' +
-      '<div class="block"><h2>練習した6つの例</h2><div class="sheetgrid">' + rows + '</div></div>' +
+      '<div class="block"><h2>練習した' + SCAMS.length + '個の例</h2><div class="sheetgrid">' + rows + '</div></div>' +
       '<div class="block"><section class="sblock"><h3>わが家の合言葉</h3><p class="sd">「本当に家族?」を確かめるための、家族だけの言葉を決めておきましょう。</p><div class="lines"><i></i></div></section></div>' +
       '<div class="print-foot">この用紙は、ご家族のお話の材料として、お持ち帰りください。</div>' +
       panel + actions('again3', []) + '</section>';
